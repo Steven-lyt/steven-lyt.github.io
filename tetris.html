@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Neon Tetris 俄羅斯方塊</title>
+<title>Neon Tetris</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧱</text></svg>">
 <style>
   :root {
@@ -233,51 +233,66 @@
   .pad button:active { background: rgba(70, 240, 180, .22); }
   @media (pointer: coarse) { .pad { display: flex; } .hint { display: none; } }
   @media (max-width: 380px) { .side { width: 92px; } :root { --bw: min(calc(96vw - 112px), calc((100 * var(--vh) - var(--reserve)) / 2), 360px); } }
+  .back {
+    position: absolute;
+    top: 8px; left: 10px;
+    z-index: 5;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    font-size: .75rem;
+    text-decoration: none;
+    backdrop-filter: blur(6px);
+  }
+  .back:hover { color: var(--accent); border-color: var(--accent); }
 </style>
 </head>
 <body>
+<a class="back" href="./">← Menu</a>
 <div class="app">
   <header>
     <h1>NEON TETRIS</h1>
-    <p>俄羅斯方塊</p>
+    <p>CLASSIC ARCADE</p>
   </header>
 
   <div class="stats">
-    <div class="stat"><small>分數</small><b id="score">0</b></div>
-    <div class="stat"><small>最高分</small><b id="best">0</b></div>
-    <div class="stat"><small>等級</small><b id="level">1</b></div>
-    <div class="stat"><small>行數</small><b id="lines">0</b></div>
+    <div class="stat"><small>SCORE</small><b id="score">0</b></div>
+    <div class="stat"><small>BEST</small><b id="best">0</b></div>
+    <div class="stat"><small>LEVEL</small><b id="level">1</b></div>
+    <div class="stat"><small>LINES</small><b id="lines">0</b></div>
   </div>
 
   <div class="layout">
     <div class="stage" id="stage">
       <canvas id="game"></canvas>
-      <button class="pausebtn" id="pauseBtn" title="暫停">⏸</button>
+      <button class="pausebtn" id="pauseBtn" title="Pause">⏸</button>
 
       <div class="overlay" id="overlay">
-        <h2 id="ovTitle">俄羅斯方塊</h2>
+        <h2 id="ovTitle">Tetris</h2>
         <div class="bigscore" id="ovScore" hidden>0</div>
-        <div class="badge" id="ovBadge" hidden>🏆 新紀錄！</div>
+        <div class="badge" id="ovBadge" hidden>🏆 New record!</div>
         <p class="sub" id="ovSub"></p>
         <div class="opts" id="opts">
-          <small>起始等級</small>
+          <small>Start level</small>
           <div class="seg" id="seg">
             <button data-lv="1">1</button>
             <button data-lv="5">5</button>
             <button data-lv="10">10</button>
           </div>
           <div class="chips">
-            <button class="chip" id="ghostChip">陰影</button>
-            <button class="chip" id="soundChip">音效</button>
+            <button class="chip" id="ghostChip">Ghost</button>
+            <button class="chip" id="soundChip">Sound</button>
           </div>
         </div>
-        <button class="btn" id="ovBtn">開始遊戲</button>
+        <button class="btn" id="ovBtn">Start Game</button>
       </div>
     </div>
 
     <aside class="side">
-      <div class="box"><small>暫存 HOLD</small><canvas id="holdC"></canvas></div>
-      <div class="box"><small>下一個 NEXT</small><canvas id="nextC"></canvas></div>
+      <div class="box"><small>HOLD</small><canvas id="holdC"></canvas></div>
+      <div class="box"><small>NEXT</small><canvas id="nextC"></canvas></div>
     </aside>
   </div>
 
@@ -296,14 +311,14 @@
   </div>
 
   <div class="hint">
-    <kbd>←</kbd><kbd>→</kbd> 移動　<kbd>↑</kbd> 旋轉　<kbd>Z</kbd> 反向旋轉　<kbd>↓</kbd> 加速下降<br>
-    <kbd>空白鍵</kbd> 直接落下　<kbd>C</kbd> 暫存　<kbd>P</kbd> 暫停
+    <kbd>←</kbd><kbd>→</kbd> Move &emsp;<kbd>↑</kbd> Rotate &emsp;<kbd>Z</kbd> Rotate back &emsp;<kbd>↓</kbd> Soft drop<br>
+    <kbd>Space</kbd> Hard drop &emsp;<kbd>C</kbd> Hold &emsp;<kbd>P</kbd> Pause
   </div>
 </div>
 
 <script>
 (() => {
-  // ---------- 基本設定 ----------
+  // ---------- Setup ----------
   const COLS = 10, ROWS = 20, CELL = 30;
   const W = COLS * CELL, H = ROWS * CELL;
   const TAU = Math.PI * 2;
@@ -333,7 +348,7 @@
     ROTS[t] = a;
   }
 
-  // SRS 踢牆表（y 向上為正，使用時要反轉）
+  // SRS wall kick tables (y is up here; flipped when applied)
   const KICK_JLSTZ = {
     '01': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
     '10': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
@@ -373,7 +388,7 @@
   const ghostChip = $('ghostChip'), soundChip = $('soundChip');
   const segBtns = document.querySelectorAll('#seg button');
 
-  // ---------- 儲存 ----------
+  // ---------- Storage ----------
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -384,7 +399,7 @@
   let soundOn = store.get('tet.sound', true) !== false;
   let bests = store.get('tet.bests', {});
 
-  // ---------- 狀態 ----------
+  // ---------- State ----------
   let board, bag = [], queue = [], cur = null, hold = null, holdUsed = false;
   let score = 0, lines = 0, level = 1, combo = -1;
   let state = 'menu';           // menu | playing | paused | over
@@ -398,7 +413,7 @@
   const gravity = () => Math.max(50, 1000 * Math.pow(0.8 - (level - 1) * 0.007, level - 1));
   const interval = () => softDown ? Math.min(gravity(), 45) : gravity();
 
-  // ---------- 音效 ----------
+  // ---------- Sound ----------
   let actx = null;
   function beep(freq, dur, type, vol, slideTo) {
     if (!soundOn) return;
@@ -417,7 +432,7 @@
     } catch (e) {}
   }
 
-  // ---------- 方塊邏輯 ----------
+  // ---------- Piece logic ----------
   function collide(m, x, y) {
     for (let r = 0; r < m.length; r++) {
       for (let c = 0; c < m[r].length; c++) {
@@ -554,8 +569,8 @@
     for (const y of rows)
       for (let x = 0; x < COLS; x++)
         burst((x + .5) * CELL, (y + .5) * CELL, [COLORS[board[y][x]], '#ffffff'], 2);
-    let label = n === 4 ? 'TETRIS!' : ['', '單行', '雙行', '三行'][n];
-    if (combo > 0) label += ' ' + (combo + 1) + '連';
+    let label = n === 4 ? 'TETRIS!' : ['', 'Single', 'Double', 'Triple'][n];
+    if (combo > 0) label += ' ' + (combo + 1) + 'x combo';
     showToast(label);
     if (n === 4) { shakeUntil = performance.now() + 300; shakeAmp = 6; }
     [523, 659, 784, 1047].slice(0, n).forEach((f, i) =>
@@ -571,7 +586,7 @@
     level = startLevel + Math.floor(lines / 10);
     clearing = null;
     if (level > old) {
-      showToast('等級 ' + level);
+      showToast('Level ' + level);
       setTimeout(() => beep(880, .2, 'sine', .07, 1320), 120);
     }
     updateStats();
@@ -594,7 +609,7 @@
     setTimeout(() => { if (state === 'over') showOverlay('over'); }, 700);
   }
 
-  // ---------- 流程 ----------
+  // ---------- Game flow ----------
   function resetGame() {
     board = newBoard(); bag = []; queue = [];
     score = 0; lines = 0; combo = -1; level = startLevel;
@@ -635,7 +650,7 @@
     }
     if (!cur) return;
 
-    // 左右移動（DAS / ARR）
+    // Horizontal movement (DAS / ARR)
     if (dasDir) {
       dasTimer += dt;
       if (dasTimer >= DAS) {
@@ -648,7 +663,7 @@
     }
     if (!cur || state !== 'playing') return;
 
-    // 重力
+    // Gravity
     const iv = interval();
     dropAcc += dt;
     let scored = false;
@@ -670,7 +685,7 @@
     }
   }
 
-  // ---------- 介面 ----------
+  // ---------- UI ----------
   function updateStats(bump) {
     scoreEl.textContent = score;
     bestEl.textContent = Math.max(bests[startLevel] || 0, score);
@@ -686,9 +701,9 @@
   function syncOptions() {
     segBtns.forEach(b => b.classList.toggle('on', Number(b.dataset.lv) === startLevel));
     ghostChip.classList.toggle('on', showGhost);
-    ghostChip.textContent = '陰影：' + (showGhost ? '開' : '關');
+    ghostChip.textContent = 'Ghost: ' + (showGhost ? 'On' : 'Off');
     soundChip.classList.toggle('on', soundOn);
-    soundChip.textContent = '音效：' + (soundOn ? '開' : '關');
+    soundChip.textContent = 'Sound: ' + (soundOn ? 'On' : 'Off');
   }
 
   function showOverlay(mode) {
@@ -697,28 +712,28 @@
     ovBadge.hidden = true;
     opts.hidden = false;
     if (mode === 'menu') {
-      ovTitle.textContent = '準備好了嗎？';
-      ovSub.textContent = '填滿一整行就能消除';
-      ovBtn.textContent = '開始遊戲';
+      ovTitle.textContent = 'Ready?';
+      ovSub.textContent = 'Fill a whole row to clear it';
+      ovBtn.textContent = 'Start Game';
     } else if (mode === 'paused') {
-      ovTitle.textContent = '已暫停';
+      ovTitle.textContent = 'Paused';
       ovSub.textContent = '';
       opts.hidden = true;
-      ovBtn.textContent = '繼續';
+      ovBtn.textContent = 'Resume';
     } else {
-      ovTitle.textContent = '遊戲結束';
+      ovTitle.textContent = 'Game over';
       ovScore.hidden = false;
       ovScore.textContent = score;
       ovBadge.hidden = !newRecord;
-      ovSub.textContent = '消除 ' + lines + ' 行 · 等級 ' + level;
-      ovBtn.textContent = '再玩一次';
+      ovSub.textContent = 'Lines ' + lines + ' · Level ' + level;
+      ovBtn.textContent = 'Play again';
     }
     syncOptions();
   }
 
   function showToast(text) { toast = { text, start: performance.now() }; }
 
-  // ---------- 粒子 ----------
+  // ---------- Particles ----------
   function burst(x, y, colors, n) {
     for (let i = 0; i < n; i++) {
       const a = Math.random() * TAU, sp = .03 + Math.random() * .2;
@@ -741,7 +756,7 @@
     }
   }
 
-  // ---------- 繪圖 ----------
+  // ---------- Drawing ----------
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
   function shade(hex, a) {
@@ -935,7 +950,7 @@
     drawSide();
   }
 
-  // ---------- 主迴圈 ----------
+  // ---------- Main loop ----------
   let lastFrame = performance.now();
   function frame(now) {
     const dt = Math.min(now - lastFrame, 50);
@@ -946,7 +961,7 @@
     requestAnimationFrame(frame);
   }
 
-  // ---------- 輸入 ----------
+  // ---------- Input ----------
   function clearInput() {
     held.left = held.right = false;
     softDown = false;
@@ -1020,7 +1035,7 @@
   });
   window.addEventListener('blur', () => { clearInput(); });
 
-  // 手機按鈕
+  // Touch buttons
   document.querySelectorAll('#pad button').forEach(b => {
     const a = b.dataset.a;
     b.addEventListener('pointerdown', e => { e.preventDefault(); press(a); });
@@ -1055,7 +1070,7 @@
 
   document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
 
-  // ---------- 開始 ----------
+  // ---------- Start ----------
   resetGame();
   showOverlay('menu');
   requestAnimationFrame(frame);

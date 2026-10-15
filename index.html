@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Neon Tetris 俄羅斯方塊</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧱</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steven's Arcade</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
 <style>
   :root {
     --bg1: #0b1020;
@@ -15,14 +15,8 @@
     --muted: #8e97c0;
     --accent: #46f0b4;
     --accent2: #5b8cff;
-    --vh: 1vh;
-    --reserve: 215px;
-    --bw: min(calc(96vw - 128px), calc((100 * var(--vh) - var(--reserve)) / 2), 360px);
   }
-  @supports (height: 100dvh) { :root { --vh: 1dvh; } }
-  @media (pointer: coarse) { :root { --reserve: 345px; } }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  [hidden] { display: none !important; }
   body {
     margin: 0;
     min-height: 100vh;
@@ -36,1030 +30,132 @@
     background-attachment: fixed;
     color: var(--text);
     font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
-    user-select: none;
-    -webkit-user-select: none;
   }
-  .app {
-    width: fit-content;
-    max-width: 100vw;
-    padding: 12px 2vw 18px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-  }
-  header { text-align: center; }
+  main { width: min(94vw, 760px); padding: 28px 0 36px; }
+  header { text-align: center; margin-bottom: 28px; }
   h1 {
     margin: 0;
-    font-size: clamp(1.5rem, 5vw, 2rem);
+    font-size: clamp(1.9rem, 7vw, 3rem);
     font-weight: 800;
     letter-spacing: .08em;
-    background: linear-gradient(90deg, #3ee8ff, var(--accent2), #c06bff);
+    background: linear-gradient(90deg, #3ee8ff, var(--accent), #c06bff);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  header p { margin: 2px 0 0; color: var(--muted); font-size: .72rem; letter-spacing: .28em; }
+  header p { margin: 8px 0 0; color: var(--muted); font-size: .85rem; letter-spacing: .24em; }
 
-  .stats { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .stat {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 7px 6px;
-    text-align: center;
-    backdrop-filter: blur(8px);
-    min-width: 0;
-  }
-  .stat small { display: block; color: var(--muted); font-size: .66rem; letter-spacing: .12em; }
-  .stat b { display: block; margin-top: 1px; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
-  .stat b.bump { animation: bump .25s ease-out; }
-  @keyframes bump { 50% { transform: scale(1.3); color: var(--accent); } }
-
-  .layout { display: flex; gap: 12px; align-items: flex-start; justify-content: center; }
-  .stage {
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .card {
     position: relative;
-    width: var(--bw);
-    aspect-ratio: 1 / 2;
-    container-type: inline-size;
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, .5), 0 0 70px rgba(91, 140, 255, .16);
-    touch-action: none;
-  }
-  canvas { display: block; }
-  #game { width: 100%; height: 100%; }
-  .pausebtn {
-    position: absolute;
-    top: 8px; right: 8px;
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: rgba(255, 255, 255, .08);
-    color: var(--text);
-    font-size: .75rem;
-    cursor: pointer;
-    backdrop-filter: blur(6px);
-  }
-  .side { width: 108px; display: flex; flex-direction: column; gap: 12px; }
-  .box {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 8px 6px 6px;
-    text-align: center;
-    backdrop-filter: blur(8px);
-  }
-  .box small { display: block; margin-bottom: 4px; color: var(--muted); font-size: .66rem; letter-spacing: .12em; }
-  .box canvas { width: 100%; height: auto; }
-
-  .overlay {
-    position: absolute;
-    inset: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
     gap: 10px;
-    padding: 12px;
-    text-align: center;
-    overflow: auto;
-    background: rgba(7, 10, 26, .75);
-    backdrop-filter: blur(6px);
-    transition: opacity .25s;
-  }
-  .overlay.hide { opacity: 0; pointer-events: none; }
-  .overlay h2 { margin: 0; font-size: clamp(1.1rem, 9cqw, 1.8rem); letter-spacing: .06em; }
-  .overlay .sub { margin: 0; color: var(--muted); font-size: clamp(.72rem, 4.5cqw, .9rem); line-height: 1.5; }
-  .bigscore {
-    font-size: clamp(1.8rem, 16cqw, 3rem);
-    font-weight: 800;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .badge {
-    padding: 3px 10px;
-    border-radius: 999px;
-    font-size: .75rem;
-    font-weight: 700;
-    color: #2b1a00;
-    background: linear-gradient(135deg, #ffd24a, #ff9a3c);
-    box-shadow: 0 0 20px rgba(255, 190, 60, .45);
-  }
-  .opts { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  .opts small { color: var(--muted); font-size: .7rem; letter-spacing: .1em; }
-  .seg {
-    display: flex;
-    padding: 3px;
-    border-radius: 11px;
-    background: rgba(255, 255, 255, .06);
+    padding: 20px;
+    border-radius: 20px;
     border: 1px solid var(--border);
-  }
-  .seg button {
-    border: 0;
-    padding: 5px 11px;
-    border-radius: 8px;
-    background: transparent;
-    color: var(--muted);
-    font: inherit;
-    font-size: .8rem;
-    cursor: pointer;
-    transition: background .15s, color .15s;
-  }
-  .seg button.on {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #06101f;
-    font-weight: 700;
-  }
-  .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
-  .chip {
-    padding: 4px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: rgba(255, 255, 255, .05);
-    color: var(--muted);
-    font: inherit;
-    font-size: .75rem;
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .chip.on { border-color: var(--accent); color: var(--accent); background: rgba(70, 240, 180, .1); }
-  .btn {
-    border: 0;
-    border-radius: 12px;
-    padding: 10px 26px;
-    font: inherit;
-    font-size: 1rem;
-    font-weight: 700;
-    color: #06101f;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    box-shadow: 0 8px 24px rgba(70, 240, 180, .28);
-    cursor: pointer;
-    transition: transform .12s, box-shadow .12s;
-  }
-  .btn:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(70, 240, 180, .38); }
-  .btn:active { transform: scale(.97); }
-
-  .hint { text-align: center; color: var(--muted); font-size: .76rem; line-height: 1.9; max-width: 480px; }
-  .hint kbd {
-    padding: 1px 6px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: rgba(255, 255, 255, .06);
-    font-family: inherit;
-    font-size: .72rem;
-  }
-
-  .pad { display: none; width: 100%; justify-content: space-between; align-items: center; }
-  .padL { display: grid; grid-template-columns: repeat(3, 56px); gap: 6px; }
-  .padR { display: grid; grid-template-columns: repeat(2, 56px); gap: 6px; }
-  .pad button {
-    height: 56px;
-    border: 1px solid var(--border);
-    border-radius: 16px;
     background: var(--panel);
-    color: var(--text);
-    font: inherit;
-    font-size: 1.3rem;
-    touch-action: none;
     backdrop-filter: blur(8px);
+    color: inherit;
+    text-decoration: none;
+    overflow: hidden;
+    transition: transform .18s, border-color .18s, box-shadow .18s;
   }
-  .pad button[data-a="hold"], .pad button[data-a="hard"] { font-size: .85rem; font-weight: 700; }
-  .pad button:active { background: rgba(70, 240, 180, .22); }
-  @media (pointer: coarse) { .pad { display: flex; } .hint { display: none; } }
-  @media (max-width: 380px) { .side { width: 92px; } :root { --bw: min(calc(96vw - 112px), calc((100 * var(--vh) - var(--reserve)) / 2), 360px); } }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(400px 160px at 20% 0%, var(--glow), transparent 70%);
+    opacity: .55;
+    pointer-events: none;
+  }
+  .card > * { position: relative; }
+  .card:hover, .card:focus-visible {
+    transform: translateY(-4px);
+    border-color: var(--edge);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, .45), 0 0 40px var(--glow);
+    outline: none;
+  }
+  .card.snake { --glow: rgba(70, 240, 180, .28); --edge: #46f0b4; }
+  .card.tetris { --glow: rgba(179, 107, 255, .3); --edge: #b36bff; }
+  .icon {
+    width: 64px; height: 64px;
+    display: grid; place-items: center;
+    border-radius: 18px;
+    font-size: 2rem;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, .07);
+  }
+  .card h2 { margin: 4px 0 0; font-size: 1.3rem; letter-spacing: .04em; }
+  .card p { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.6; }
+  .meta { margin-top: auto; padding-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: .85rem; }
+  .best { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .best b { color: var(--text); }
+  .go { font-weight: 700; color: var(--edge); }
+  .soon {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 190px;
+    border-radius: 20px;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    font-size: .9rem;
+    letter-spacing: .12em;
+  }
+  footer { margin-top: 28px; text-align: center; color: var(--muted); font-size: .78rem; line-height: 1.8; }
+  footer a { color: var(--muted); }
 </style>
 </head>
 <body>
-<div class="app">
+<main>
   <header>
-    <h1>NEON TETRIS</h1>
-    <p>俄羅斯方塊</p>
+    <h1>STEVEN'S ARCADE</h1>
+    <p>VIBECODING WORKSHOP · 2026/10/15</p>
   </header>
 
-  <div class="stats">
-    <div class="stat"><small>分數</small><b id="score">0</b></div>
-    <div class="stat"><small>最高分</small><b id="best">0</b></div>
-    <div class="stat"><small>等級</small><b id="level">1</b></div>
-    <div class="stat"><small>行數</small><b id="lines">0</b></div>
-  </div>
-
-  <div class="layout">
-    <div class="stage" id="stage">
-      <canvas id="game"></canvas>
-      <button class="pausebtn" id="pauseBtn" title="暫停">⏸</button>
-
-      <div class="overlay" id="overlay">
-        <h2 id="ovTitle">俄羅斯方塊</h2>
-        <div class="bigscore" id="ovScore" hidden>0</div>
-        <div class="badge" id="ovBadge" hidden>🏆 新紀錄！</div>
-        <p class="sub" id="ovSub"></p>
-        <div class="opts" id="opts">
-          <small>起始等級</small>
-          <div class="seg" id="seg">
-            <button data-lv="1">1</button>
-            <button data-lv="5">5</button>
-            <button data-lv="10">10</button>
-          </div>
-          <div class="chips">
-            <button class="chip" id="ghostChip">陰影</button>
-            <button class="chip" id="soundChip">音效</button>
-          </div>
-        </div>
-        <button class="btn" id="ovBtn">開始遊戲</button>
+  <div class="grid">
+    <a class="card snake" href="snake.html">
+      <div class="icon">🐍</div>
+      <h2>Snake</h2>
+      <p>Eat the food to grow longer and avoid the walls and yourself. Three difficulty levels plus a wrap-around mode.</p>
+      <div class="meta">
+        <span class="best" id="bestSnake">Not played yet</span>
+        <span class="go">Play →</span>
       </div>
-    </div>
+    </a>
 
-    <aside class="side">
-      <div class="box"><small>暫存 HOLD</small><canvas id="holdC"></canvas></div>
-      <div class="box"><small>下一個 NEXT</small><canvas id="nextC"></canvas></div>
-    </aside>
+    <a class="card tetris" href="tetris.html">
+      <div class="icon">🧱</div>
+      <h2>Tetris</h2>
+      <p>Stack the blocks and clear full rows. Includes hold, ghost piece, and combo scoring.</p>
+      <div class="meta">
+        <span class="best" id="bestTetris">Not played yet</span>
+        <span class="go">Play →</span>
+      </div>
+    </a>
+
+    <div class="soon">MORE GAMES COMING SOON</div>
   </div>
 
-  <div class="pad" id="pad">
-    <div class="padL">
-      <button data-a="left">◀</button>
-      <button data-a="down">▼</button>
-      <button data-a="right">▶</button>
-    </div>
-    <div class="padR">
-      <button data-a="hold">HOLD</button>
-      <button data-a="hard">DROP</button>
-      <button data-a="rotateCCW">↺</button>
-      <button data-a="rotateCW">↻</button>
-    </div>
-  </div>
-
-  <div class="hint">
-    <kbd>←</kbd><kbd>→</kbd> 移動　<kbd>↑</kbd> 旋轉　<kbd>Z</kbd> 反向旋轉　<kbd>↓</kbd> 加速下降<br>
-    <kbd>空白鍵</kbd> 直接落下　<kbd>C</kbd> 暫存　<kbd>P</kbd> 暫停
-  </div>
-</div>
+  <footer>
+    Play with a keyboard on desktop or touch on mobile<br>
+    Best scores are saved in this browser
+  </footer>
+</main>
 
 <script>
-(() => {
-  // ---------- 基本設定 ----------
-  const COLS = 10, ROWS = 20, CELL = 30;
-  const W = COLS * CELL, H = ROWS * CELL;
-  const TAU = Math.PI * 2;
-  const FONT = '"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif';
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-  const DAS = 140, ARR = 35, LOCK = 500, CLEAR_MS = 300, MAX_RESETS = 15;
-
-  const COLORS = {
-    I: '#3ee8ff', O: '#ffd84a', T: '#b36bff',
-    S: '#46f08c', Z: '#ff5d7a', J: '#5b8cff', L: '#ff9a3c'
-  };
-  const SHAPES = {
-    I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
-    J: [[1,0,0],[1,1,1],[0,0,0]],
-    L: [[0,0,1],[1,1,1],[0,0,0]],
-    O: [[1,1],[1,1]],
-    S: [[0,1,1],[1,1,0],[0,0,0]],
-    T: [[0,1,0],[1,1,1],[0,0,0]],
-    Z: [[1,1,0],[0,1,1],[0,0,0]]
-  };
-  const rotCW = m => m[0].map((_, i) => m.map(r => r[i]).reverse());
-  const ROTS = {};
-  for (const t in SHAPES) {
-    const a = [SHAPES[t]];
-    for (let i = 1; i < 4; i++) a.push(rotCW(a[i - 1]));
-    ROTS[t] = a;
-  }
-
-  // SRS 踢牆表（y 向上為正，使用時要反轉）
-  const KICK_JLSTZ = {
-    '01': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
-    '10': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
-    '12': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
-    '21': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
-    '23': [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
-    '32': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
-    '30': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
-    '03': [[0,0],[1,0],[1,1],[0,-2],[1,-2]]
-  };
-  const KICK_I = {
-    '01': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
-    '10': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
-    '12': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]],
-    '21': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
-    '23': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
-    '32': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
-    '30': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
-    '03': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]]
-  };
-
-  // ---------- DOM ----------
-  const $ = id => document.getElementById(id);
-  const stage = $('stage'), overlay = $('overlay');
-  const canvas = $('game'), ctx = canvas.getContext('2d');
-  canvas.width = W * dpr; canvas.height = H * dpr; ctx.scale(dpr, dpr);
-
-  const HW = 96, HH = 64, NW = 96, NH = 176, MC = 20;
-  const holdC = $('holdC'), hctx = holdC.getContext('2d');
-  holdC.width = HW * dpr; holdC.height = HH * dpr; hctx.scale(dpr, dpr);
-  const nextC = $('nextC'), nctx = nextC.getContext('2d');
-  nextC.width = NW * dpr; nextC.height = NH * dpr; nctx.scale(dpr, dpr);
-
-  const scoreEl = $('score'), bestEl = $('best'), levelEl = $('level'), linesEl = $('lines');
-  const ovTitle = $('ovTitle'), ovScore = $('ovScore'), ovBadge = $('ovBadge');
-  const ovSub = $('ovSub'), opts = $('opts'), ovBtn = $('ovBtn');
-  const ghostChip = $('ghostChip'), soundChip = $('soundChip');
-  const segBtns = document.querySelectorAll('#seg button');
-
-  // ---------- 儲存 ----------
-  const store = {
-    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-  };
-  let startLevel = Number(store.get('tet.lv', 1));
-  if (![1, 5, 10].includes(startLevel)) startLevel = 1;
-  let showGhost = store.get('tet.ghost', true) !== false;
-  let soundOn = store.get('tet.sound', true) !== false;
-  let bests = store.get('tet.bests', {});
-
-  // ---------- 狀態 ----------
-  let board, bag = [], queue = [], cur = null, hold = null, holdUsed = false;
-  let score = 0, lines = 0, level = 1, combo = -1;
-  let state = 'menu';           // menu | playing | paused | over
-  let dropAcc = 0, lockTimer = 0, lockResets = 0;
-  let clearing = null, particles = [], toast = null, dropFx = null;
-  let shakeUntil = 0, shakeAmp = 5, overAt = 0, newRecord = false;
-  let softDown = false, dasDir = 0, dasTimer = 0, arrTimer = 0;
-  const held = { left: false, right: false };
-
-  const newBoard = () => Array.from({ length: ROWS }, () => Array(COLS).fill(null));
-  const gravity = () => Math.max(50, 1000 * Math.pow(0.8 - (level - 1) * 0.007, level - 1));
-  const interval = () => softDown ? Math.min(gravity(), 45) : gravity();
-
-  // ---------- 音效 ----------
-  let actx = null;
-  function beep(freq, dur, type, vol, slideTo) {
-    if (!soundOn) return;
+  function bestOf(key) {
     try {
-      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-      if (actx.state === 'suspended') actx.resume();
-      const t0 = actx.currentTime;
-      const o = actx.createOscillator(), g = actx.createGain();
-      o.type = type || 'sine';
-      o.frequency.setValueAtTime(freq, t0);
-      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
-      g.gain.setValueAtTime(vol || .06, t0);
-      g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
-      o.connect(g); g.connect(actx.destination);
-      o.start(t0); o.stop(t0 + dur);
-    } catch (e) {}
+      const o = JSON.parse(localStorage.getItem(key) || '{}');
+      const v = Object.values(o).map(Number).filter(n => !isNaN(n));
+      return v.length ? Math.max(...v) : 0;
+    } catch (e) { return 0; }
   }
-
-  // ---------- 方塊邏輯 ----------
-  function collide(m, x, y) {
-    for (let r = 0; r < m.length; r++) {
-      for (let c = 0; c < m[r].length; c++) {
-        if (!m[r][c]) continue;
-        const px = x + c, py = y + r;
-        if (px < 0 || px >= COLS || py >= ROWS) return true;
-        if (py >= 0 && board[py][px]) return true;
-      }
-    }
-    return false;
+  function show(id, key) {
+    const n = bestOf(key);
+    if (n > 0) document.getElementById(id).innerHTML = 'Best <b>' + n + '</b>';
   }
-
-  function shuffle(a) {
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-  function refill() {
-    while (queue.length < 5) {
-      if (!bag.length) bag = shuffle(['I', 'O', 'T', 'S', 'Z', 'J', 'L']);
-      queue.push(bag.pop());
-    }
-  }
-  function spawnNext() { refill(); spawn(queue.shift()); refill(); }
-
-  function spawn(type) {
-    const m = ROTS[type][0];
-    cur = {
-      type, rot: 0, m,
-      x: Math.floor((COLS - m.length) / 2),
-      y: type === 'I' ? -1 : 0
-    };
-    dropAcc = 0; lockTimer = 0; lockResets = 0;
-    if (collide(cur.m, cur.x, cur.y)) gameOver();
-  }
-
-  function dropY() {
-    let y = cur.y;
-    while (!collide(cur.m, cur.x, y + 1)) y++;
-    return y;
-  }
-
-  function afterMove() {
-    if (collide(cur.m, cur.x, cur.y + 1)) {
-      if (lockResets < MAX_RESETS) { lockTimer = 0; lockResets++; }
-    } else {
-      lockTimer = 0;
-    }
-  }
-
-  function move(dx) {
-    if (!cur || clearing || state !== 'playing') return false;
-    if (collide(cur.m, cur.x + dx, cur.y)) return false;
-    cur.x += dx;
-    afterMove();
-    return true;
-  }
-
-  function rotate(d) {
-    if (!cur || clearing || state !== 'playing' || cur.type === 'O') return false;
-    const from = cur.rot, to = (from + d + 4) % 4;
-    const m = ROTS[cur.type][to];
-    const kicks = (cur.type === 'I' ? KICK_I : KICK_JLSTZ)['' + from + to];
-    for (const [kx, ky] of kicks) {
-      const nx = cur.x + kx, ny = cur.y - ky;
-      if (!collide(m, nx, ny)) {
-        cur.m = m; cur.rot = to; cur.x = nx; cur.y = ny;
-        afterMove();
-        beep(520, .05, 'triangle', .04);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  function hardDrop() {
-    if (!cur || clearing || state !== 'playing') return;
-    const startY = cur.y;
-    const gy = dropY();
-    const dist = gy - cur.y;
-    let minC = 9, maxC = -1;
-    cur.m.forEach(row => row.forEach((v, c) => { if (v) { minC = Math.min(minC, c); maxC = Math.max(maxC, c); } }));
-    if (dist > 0) {
-      dropFx = {
-        x: (cur.x + minC) * CELL, w: (maxC - minC + 1) * CELL,
-        y0: Math.max(0, startY) * CELL, y1: gy * CELL,
-        color: COLORS[cur.type], start: performance.now()
-      };
-    }
-    score += dist * 2;
-    cur.y = gy;
-    shakeUntil = performance.now() + 120; shakeAmp = 3;
-    beep(160, .08, 'square', .05, 90);
-    lockPiece();
-  }
-
-  function doHold() {
-    if (!cur || clearing || state !== 'playing' || holdUsed) return;
-    const t = cur.type;
-    if (hold) { const h = hold; hold = t; spawn(h); }
-    else { hold = t; spawnNext(); }
-    holdUsed = true;
-    beep(400, .08, 'sine', .05, 600);
-  }
-
-  function lockPiece() {
-    let out = false;
-    cur.m.forEach((row, r) => row.forEach((v, c) => {
-      if (!v) return;
-      const py = cur.y + r, px = cur.x + c;
-      if (py < 0) out = true; else board[py][px] = cur.type;
-    }));
-    beep(200, .06, 'triangle', .05, 120);
-    cur = null;
-    holdUsed = false;
-    dropAcc = 0;
-    if (out) { gameOver(); updateStats(); return; }
-
-    const full = [];
-    for (let y = 0; y < ROWS; y++) if (board[y].every(Boolean)) full.push(y);
-    if (full.length) startClear(full);
-    else { combo = -1; spawnNext(); }
-    updateStats();
-  }
-
-  function startClear(rows) {
-    const n = rows.length;
-    score += [0, 100, 300, 500, 800][n] * level;
-    combo++;
-    if (combo > 0) score += 50 * combo * level;
-    clearing = { rows, t: 0 };
-    for (const y of rows)
-      for (let x = 0; x < COLS; x++)
-        burst((x + .5) * CELL, (y + .5) * CELL, [COLORS[board[y][x]], '#ffffff'], 2);
-    let label = n === 4 ? 'TETRIS!' : ['', '單行', '雙行', '三行'][n];
-    if (combo > 0) label += ' ' + (combo + 1) + '連';
-    showToast(label);
-    if (n === 4) { shakeUntil = performance.now() + 300; shakeAmp = 6; }
-    [523, 659, 784, 1047].slice(0, n).forEach((f, i) =>
-      setTimeout(() => beep(f, .14, 'triangle', .07), i * 70));
-    updateStats(true);
-  }
-
-  function finishClear() {
-    const rows = clearing.rows.slice().sort((a, b) => a - b);
-    for (const y of rows) { board.splice(y, 1); board.unshift(Array(COLS).fill(null)); }
-    const old = level;
-    lines += rows.length;
-    level = startLevel + Math.floor(lines / 10);
-    clearing = null;
-    if (level > old) {
-      showToast('等級 ' + level);
-      setTimeout(() => beep(880, .2, 'sine', .07, 1320), 120);
-    }
-    updateStats();
-    spawnNext();
-  }
-
-  function gameOver() {
-    state = 'over';
-    clearInput();
-    const now = performance.now();
-    shakeUntil = now + 350; shakeAmp = 5;
-    overAt = now + 700;
-    beep(240, .5, 'sawtooth', .07, 60);
-    const b = bests[startLevel] || 0;
-    if (score > 0 && score > b) {
-      bests[startLevel] = score;
-      store.set('tet.bests', bests);
-      newRecord = true;
-    }
-    setTimeout(() => { if (state === 'over') showOverlay('over'); }, 700);
-  }
-
-  // ---------- 流程 ----------
-  function resetGame() {
-    board = newBoard(); bag = []; queue = [];
-    score = 0; lines = 0; combo = -1; level = startLevel;
-    hold = null; holdUsed = false; cur = null; clearing = null;
-    particles = []; toast = null; dropFx = null;
-    dropAcc = 0; lockTimer = 0; lockResets = 0; newRecord = false;
-    clearInput();
-    updateStats();
-  }
-
-  function startGame() {
-    resetGame();
-    state = 'playing';
-    overlay.classList.add('hide');
-    spawnNext();
-    showToast('GO!');
-    beep(520, .12, 'triangle', .07, 780);
-  }
-
-  function pauseGame() {
-    if (state !== 'playing') return;
-    state = 'paused';
-    clearInput();
-    showOverlay('paused');
-  }
-
-  function resumeGame() {
-    if (state !== 'paused') return;
-    state = 'playing';
-    overlay.classList.add('hide');
-  }
-
-  function update(dt) {
-    if (clearing) {
-      clearing.t += dt;
-      if (clearing.t >= CLEAR_MS) finishClear();
-      return;
-    }
-    if (!cur) return;
-
-    // 左右移動（DAS / ARR）
-    if (dasDir) {
-      dasTimer += dt;
-      if (dasTimer >= DAS) {
-        arrTimer += dt;
-        while (arrTimer >= ARR) {
-          arrTimer -= ARR;
-          if (!move(dasDir)) { arrTimer = 0; break; }
-        }
-      }
-    }
-    if (!cur || state !== 'playing') return;
-
-    // 重力
-    const iv = interval();
-    dropAcc += dt;
-    let scored = false;
-    while (dropAcc >= iv && !collide(cur.m, cur.x, cur.y + 1)) {
-      dropAcc -= iv;
-      cur.y++;
-      lockTimer = 0;
-      if (softDown) { score++; scored = true; }
-    }
-    if (scored) updateStats();
-
-    if (collide(cur.m, cur.x, cur.y + 1)) {
-      dropAcc = 0;
-      lockTimer += dt;
-      if (lockTimer >= (softDown ? 100 : LOCK)) lockPiece();
-    } else {
-      lockTimer = 0;
-      if (dropAcc > iv) dropAcc = iv;
-    }
-  }
-
-  // ---------- 介面 ----------
-  function updateStats(bump) {
-    scoreEl.textContent = score;
-    bestEl.textContent = Math.max(bests[startLevel] || 0, score);
-    levelEl.textContent = level;
-    linesEl.textContent = lines;
-    if (bump) {
-      scoreEl.classList.remove('bump');
-      void scoreEl.offsetWidth;
-      scoreEl.classList.add('bump');
-    }
-  }
-
-  function syncOptions() {
-    segBtns.forEach(b => b.classList.toggle('on', Number(b.dataset.lv) === startLevel));
-    ghostChip.classList.toggle('on', showGhost);
-    ghostChip.textContent = '陰影：' + (showGhost ? '開' : '關');
-    soundChip.classList.toggle('on', soundOn);
-    soundChip.textContent = '音效：' + (soundOn ? '開' : '關');
-  }
-
-  function showOverlay(mode) {
-    overlay.classList.remove('hide');
-    ovScore.hidden = true;
-    ovBadge.hidden = true;
-    opts.hidden = false;
-    if (mode === 'menu') {
-      ovTitle.textContent = '準備好了嗎？';
-      ovSub.textContent = '填滿一整行就能消除';
-      ovBtn.textContent = '開始遊戲';
-    } else if (mode === 'paused') {
-      ovTitle.textContent = '已暫停';
-      ovSub.textContent = '';
-      opts.hidden = true;
-      ovBtn.textContent = '繼續';
-    } else {
-      ovTitle.textContent = '遊戲結束';
-      ovScore.hidden = false;
-      ovScore.textContent = score;
-      ovBadge.hidden = !newRecord;
-      ovSub.textContent = '消除 ' + lines + ' 行 · 等級 ' + level;
-      ovBtn.textContent = '再玩一次';
-    }
-    syncOptions();
-  }
-
-  function showToast(text) { toast = { text, start: performance.now() }; }
-
-  // ---------- 粒子 ----------
-  function burst(x, y, colors, n) {
-    for (let i = 0; i < n; i++) {
-      const a = Math.random() * TAU, sp = .03 + Math.random() * .2;
-      const life = 400 + Math.random() * 400;
-      particles.push({
-        x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - .05,
-        life, max: life, size: 2 + Math.random() * 3,
-        color: colors[Math.floor(Math.random() * colors.length)]
-      });
-    }
-  }
-  function updateParticles(dt) {
-    const f = Math.pow(.993, dt);
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const p = particles[i];
-      p.life -= dt;
-      if (p.life <= 0) { particles.splice(i, 1); continue; }
-      p.x += p.vx * dt; p.y += p.vy * dt;
-      p.vx *= f; p.vy = p.vy * f + .0004 * dt;
-    }
-  }
-
-  // ---------- 繪圖 ----------
-  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-
-  function shade(hex, a) {
-    const n = parseInt(hex.slice(1), 16);
-    let r = n >> 16, g = (n >> 8) & 255, b = n & 255;
-    const t = a < 0 ? 0 : 255, p = Math.abs(a);
-    r = Math.round(r + (t - r) * p);
-    g = Math.round(g + (t - g) * p);
-    b = Math.round(b + (t - b) * p);
-    return 'rgb(' + r + ',' + g + ',' + b + ')';
-  }
-  function rr(g, x, y, w, h, r) {
-    g.beginPath();
-    g.moveTo(x + r, y);
-    g.arcTo(x + w, y, x + w, y + h, r);
-    g.arcTo(x + w, y + h, x, y + h, r);
-    g.arcTo(x, y + h, x, y, r);
-    g.arcTo(x, y, x + w, y, r);
-    g.closePath();
-  }
-
-  const spriteCache = {};
-  function getSprite(type, s) {
-    const k = type + '@' + s;
-    if (spriteCache[k]) return spriteCache[k];
-    const c = document.createElement('canvas');
-    c.width = c.height = Math.ceil(s * dpr);
-    const g = c.getContext('2d');
-    g.scale(dpr, dpr);
-    const col = COLORS[type], p = 1, w = s - 2, r = s * .2;
-    const base = g.createLinearGradient(0, 0, s, s);
-    base.addColorStop(0, shade(col, .25));
-    base.addColorStop(1, shade(col, -.3));
-    g.fillStyle = base;
-    rr(g, p, p, w, w, r); g.fill();
-    g.fillStyle = 'rgba(255,255,255,.26)';
-    rr(g, p + 3, p + 3, w - 6, (w - 6) * .38, r * .6); g.fill();
-    g.strokeStyle = 'rgba(255,255,255,.35)';
-    g.lineWidth = 1;
-    rr(g, p + .5, p + .5, w - 1, w - 1, r); g.stroke();
-    spriteCache[k] = c;
-    return c;
-  }
-
-  const vignette = ctx.createRadialGradient(W / 2, H / 2, H * .35, W / 2, H / 2, H * .8);
-  vignette.addColorStop(0, 'rgba(0,0,0,0)');
-  vignette.addColorStop(1, 'rgba(0,0,0,.35)');
-
-  function drawGrid() {
-    ctx.strokeStyle = 'rgba(255,255,255,.045)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let x = 1; x < COLS; x++) { ctx.moveTo(x * CELL + .5, 0); ctx.lineTo(x * CELL + .5, H); }
-    for (let y = 1; y < ROWS; y++) { ctx.moveTo(0, y * CELL + .5); ctx.lineTo(W, y * CELL + .5); }
-    ctx.stroke();
-  }
-
-  function drawBoardCells() {
-    const clr = clearing ? clearing.rows : null;
-    const prog = clearing ? clamp(clearing.t / CLEAR_MS, 0, 1) : 0;
-    for (let y = 0; y < ROWS; y++) {
-      const isClr = clr && clr.includes(y);
-      for (let x = 0; x < COLS; x++) {
-        const t = board[y][x];
-        if (!t) continue;
-        if (isClr) {
-          ctx.globalAlpha = 1 - prog;
-          ctx.drawImage(getSprite(t, CELL), x * CELL, y * CELL, CELL, CELL);
-          ctx.fillStyle = 'rgba(255,255,255,' + (0.9 * (1 - prog)) + ')';
-          ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
-          ctx.globalAlpha = 1;
-        } else {
-          ctx.drawImage(getSprite(t, CELL), x * CELL, y * CELL, CELL, CELL);
-        }
-      }
-    }
-  }
-
-  function drawGhost() {
-    if (!showGhost || !cur || clearing) return;
-    const gy = dropY();
-    if (gy <= cur.y) return;
-    const col = COLORS[cur.type];
-    ctx.save();
-    cur.m.forEach((row, r) => row.forEach((v, c) => {
-      if (!v) return;
-      const x = (cur.x + c) * CELL, y = (gy + r) * CELL;
-      ctx.globalAlpha = .14; ctx.fillStyle = col;
-      rr(ctx, x + 2, y + 2, CELL - 4, CELL - 4, 5); ctx.fill();
-      ctx.globalAlpha = .6; ctx.strokeStyle = col; ctx.lineWidth = 1.5;
-      rr(ctx, x + 2, y + 2, CELL - 4, CELL - 4, 5); ctx.stroke();
-    }));
-    ctx.restore();
-  }
-
-  function drawCurrent() {
-    if (!cur) return;
-    let off = 0;
-    if (state === 'playing' && !collide(cur.m, cur.x, cur.y + 1))
-      off = clamp(dropAcc / interval(), 0, 1) * CELL;
-    const sp = getSprite(cur.type, CELL);
-    cur.m.forEach((row, r) => row.forEach((v, c) => {
-      if (!v) return;
-      ctx.drawImage(sp, (cur.x + c) * CELL, (cur.y + r) * CELL + off, CELL, CELL);
-    }));
-  }
-
-  function drawDropFx(now) {
-    if (!dropFx) return;
-    const age = now - dropFx.start;
-    if (age > 220) { dropFx = null; return; }
-    const a = 1 - age / 220;
-    const g = ctx.createLinearGradient(0, dropFx.y0, 0, dropFx.y1);
-    g.addColorStop(0, 'rgba(255,255,255,0)');
-    g.addColorStop(1, dropFx.color);
-    ctx.save();
-    ctx.globalAlpha = .35 * a;
-    ctx.fillStyle = g;
-    ctx.fillRect(dropFx.x, dropFx.y0, dropFx.w, dropFx.y1 - dropFx.y0);
-    ctx.restore();
-  }
-
-  function drawParticles() {
-    for (const p of particles) {
-      const a = Math.max(0, p.life / p.max);
-      ctx.globalAlpha = a;
-      ctx.fillStyle = p.color;
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (.4 + .6 * a), 0, TAU); ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  function drawToast(now) {
-    if (!toast) return;
-    const age = now - toast.start;
-    if (age > 1100) { toast = null; return; }
-    const a = age < 150 ? age / 150 : 1 - (age - 150) / 950;
-    ctx.save();
-    ctx.globalAlpha = clamp(a, 0, 1);
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = '800 32px ' + FONT;
-    ctx.fillStyle = '#fff';
-    ctx.shadowColor = 'rgba(70,240,180,.9)';
-    ctx.shadowBlur = 18;
-    ctx.fillText(toast.text, W / 2, H * .38 - age * .03);
-    ctx.restore();
-  }
-
-  function drawMini(g, type, cx, cy, s, alpha) {
-    const m = ROTS[type][0];
-    let minR = 9, maxR = -1, minC = 9, maxC = -1;
-    m.forEach((row, r) => row.forEach((v, c) => {
-      if (v) { minR = Math.min(minR, r); maxR = Math.max(maxR, r); minC = Math.min(minC, c); maxC = Math.max(maxC, c); }
-    }));
-    const ox = cx - (maxC - minC + 1) * s / 2, oy = cy - (maxR - minR + 1) * s / 2;
-    const sp = getSprite(type, s);
-    g.globalAlpha = alpha;
-    m.forEach((row, r) => row.forEach((v, c) => {
-      if (v) g.drawImage(sp, ox + (c - minC) * s, oy + (r - minR) * s, s, s);
-    }));
-    g.globalAlpha = 1;
-  }
-
-  function drawSide() {
-    hctx.clearRect(0, 0, HW, HH);
-    if (hold) drawMini(hctx, hold, HW / 2, HH / 2, MC, holdUsed ? .35 : 1);
-    nctx.clearRect(0, 0, NW, NH);
-    for (let i = 0; i < 3 && i < queue.length; i++)
-      drawMini(nctx, queue[i], NW / 2, 30 + i * 58, MC, 1);
-  }
-
-  function render(now) {
-    ctx.fillStyle = '#0c1230';
-    ctx.fillRect(0, 0, W, H);
-    ctx.save();
-    if (shakeUntil > now) {
-      const k = (shakeUntil - now) / 350 * shakeAmp;
-      ctx.translate((Math.random() - .5) * k, (Math.random() - .5) * k);
-    }
-    drawGrid();
-    drawDropFx(now);
-    drawBoardCells();
-    drawGhost();
-    drawCurrent();
-    drawParticles();
-    ctx.restore();
-    ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, W, H);
-    drawToast(now);
-    drawSide();
-  }
-
-  // ---------- 主迴圈 ----------
-  let lastFrame = performance.now();
-  function frame(now) {
-    const dt = Math.min(now - lastFrame, 50);
-    lastFrame = now;
-    if (state === 'playing') update(dt);
-    updateParticles(dt);
-    render(now);
-    requestAnimationFrame(frame);
-  }
-
-  // ---------- 輸入 ----------
-  function clearInput() {
-    held.left = held.right = false;
-    softDown = false;
-    dasDir = 0; dasTimer = 0; arrTimer = 0;
-  }
-
-  function press(a) {
-    if (state !== 'playing') return;
-    switch (a) {
-      case 'left':
-        held.left = true; dasDir = -1; dasTimer = 0; arrTimer = 0; move(-1); break;
-      case 'right':
-        held.right = true; dasDir = 1; dasTimer = 0; arrTimer = 0; move(1); break;
-      case 'down': softDown = true; break;
-      case 'rotateCW': rotate(1); break;
-      case 'rotateCCW': rotate(-1); break;
-      case 'hard': hardDrop(); break;
-      case 'hold': doHold(); break;
-    }
-  }
-
-  function release(a) {
-    if (a === 'left') {
-      held.left = false;
-      if (dasDir === -1) { dasDir = held.right ? 1 : 0; dasTimer = 0; arrTimer = 0; }
-    } else if (a === 'right') {
-      held.right = false;
-      if (dasDir === 1) { dasDir = held.left ? -1 : 0; dasTimer = 0; arrTimer = 0; }
-    } else if (a === 'down') {
-      softDown = false;
-    }
-  }
-
-  function primary() {
-    if (state === 'menu') startGame();
-    else if (state === 'over') { if (performance.now() > overAt) startGame(); }
-    else if (state === 'paused') resumeGame();
-  }
-
-  const KEYMAP = {
-    arrowleft: 'left', a: 'left',
-    arrowright: 'right', d: 'right',
-    arrowdown: 'down', s: 'down',
-    arrowup: 'rotateCW', w: 'rotateCW', x: 'rotateCW',
-    z: 'rotateCCW',
-    c: 'hold', shift: 'hold'
-  };
-
-  document.addEventListener('keydown', e => {
-    const k = e.key.toLowerCase();
-    if (k === ' ' || k === 'spacebar') {
-      e.preventDefault();
-      if (state === 'playing') { if (!e.repeat) press('hard'); }
-      else primary();
-      return;
-    }
-    if (k === 'enter') { if (state !== 'playing') primary(); return; }
-    if (k === 'p' || k === 'escape') {
-      if (state === 'playing') pauseGame(); else if (state === 'paused') resumeGame();
-      return;
-    }
-    const a = KEYMAP[k];
-    if (a) {
-      e.preventDefault();
-      if (!e.repeat) press(a);
-    }
-  });
-  document.addEventListener('keyup', e => {
-    const a = KEYMAP[e.key.toLowerCase()];
-    if (a) release(a);
-  });
-  window.addEventListener('blur', () => { clearInput(); });
-
-  // 手機按鈕
-  document.querySelectorAll('#pad button').forEach(b => {
-    const a = b.dataset.a;
-    b.addEventListener('pointerdown', e => { e.preventDefault(); press(a); });
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev =>
-      b.addEventListener(ev, () => release(a)));
-    b.addEventListener('contextmenu', e => e.preventDefault());
-  });
-
-  $('pauseBtn').addEventListener('click', e => { pauseGame(); e.currentTarget.blur(); });
-  ovBtn.addEventListener('click', e => {
-    e.currentTarget.blur();
-    if (state === 'paused') resumeGame();
-    else if (state === 'menu' || (state === 'over' && performance.now() > overAt)) startGame();
-  });
-
-  segBtns.forEach(b => b.addEventListener('click', e => {
-    startLevel = Number(b.dataset.lv);
-    store.set('tet.lv', startLevel);
-    if (state === 'menu' || state === 'over') level = startLevel;
-    syncOptions(); updateStats();
-    e.currentTarget.blur();
-  }));
-  ghostChip.addEventListener('click', e => {
-    showGhost = !showGhost; store.set('tet.ghost', showGhost);
-    syncOptions(); e.currentTarget.blur();
-  });
-  soundChip.addEventListener('click', e => {
-    soundOn = !soundOn; store.set('tet.sound', soundOn);
-    syncOptions(); if (soundOn) beep(660, .1, 'triangle', .06);
-    e.currentTarget.blur();
-  });
-
-  document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
-
-  // ---------- 開始 ----------
-  resetGame();
-  showOverlay('menu');
-  requestAnimationFrame(frame);
-})();
+  show('bestSnake', 'snk.bests');
+  show('bestTetris', 'tet.bests');
 </script>
 </body>
 </html>
