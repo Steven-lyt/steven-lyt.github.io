@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>F1 Reaction</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏁</text></svg>">
+<style>
+  :root {
+    --bg1: #0b1020;
+    --bg2: #1a1038;
+    --panel: rgba(255, 255, 255, .06);
+    --border: rgba(255, 255, 255, .12);
+    --text: #e8ecff;
+    --muted: #8e97c0;
+    --accent: #46f0b4;
+    --red: #ff2a3d;
+    --lamp: clamp(34px, 9.5vw, 66px);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(1200px 700px at 15% -10%, #25306b 0%, transparent 60%),
+      radial-gradient(900px 600px at 100% 110%, #4a1d6b 0%, transparent 55%),
+      linear-gradient(160deg, var(--bg1), var(--bg2));
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .back {
+    position: absolute;
+    top: 8px; left: 10px;
+    z-index: 5;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    font-size: .75rem;
+    text-decoration: none;
+    backdrop-filter: blur(6px);
+  }
+  .back:hover { color: var(--accent); border-color: var(--accent); }
+  .app {
+    width: min(94vw, 640px);
+    padding: 24px 0 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  header { text-align: center; }
+  h1 {
+    margin: 0;
+    font-size: clamp(1.7rem, 6vw, 2.3rem);
+    font-weight: 800;
+    letter-spacing: .08em;
+    background: linear-gradient(90deg, #ff5d7a, #ff2a3d, #ff9a3c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: .78rem; letter-spacing: .28em; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 8px 6px;
+    text-align: center;
+    backdrop-filter: blur(8px);
+    min-width: 0;
+  }
+  .stat small { display: block; color: var(--muted); font-size: .66rem; letter-spacing: .12em; }
+  .stat b { display: block; margin-top: 2px; font-size: 1.15rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .stat b.pop { animation: pop .35s ease-out; }
+  @keyframes pop { 40% { transform: scale(1.25); color: var(--accent); } }
+
+  .stage {
+    position: relative;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.25)),
+      #0d0f1f;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .5), 0 0 70px rgba(255, 42, 61, .12);
+    padding: 22px 14px 18px;
+    text-align: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .stage.s-false { border-color: var(--red); box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 80px rgba(255, 42, 61, .45); }
+  .stage.s-go { border-color: rgba(70, 240, 180, .6); }
+  .sndbtn {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, .08);
+    color: var(--text);
+    font-size: .8rem;
+    cursor: pointer;
+  }
+
+  .gantry {
+    margin: 6px auto 0;
+    width: fit-content;
+    max-width: 100%;
+    display: flex;
+    gap: clamp(8px, 2.4vw, 16px);
+    padding: clamp(10px, 2.6vw, 16px);
+    border-radius: 18px;
+    background: linear-gradient(180deg, #14141f, #06060c);
+    border: 1px solid rgba(255, 255, 255, .08);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255,255,255,.06);
+    position: relative;
+  }
+  .gantry::before, .gantry::after {
+    content: "";
+    position: absolute;
+    top: -22px;
+    width: 8px; height: 22px;
+    background: linear-gradient(90deg, #2a2a38, #12121a);
+  }
+  .gantry::before { left: 22%; }
+  .gantry::after { right: 22%; }
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 2vw, 12px);
+    padding: clamp(6px, 1.6vw, 10px);
+    border-radius: 999px;
+    background: #090910;
+    border: 1px solid rgba(255, 255, 255, .05);
+  }
+  .lamp {
+    display: block;
+    width: var(--lamp); height: var(--lamp);
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #3a0a10 0%, #1c0508 70%);
+    box-shadow: inset 0 3px 8px rgba(0, 0, 0, .8);
+  }
+  .col.on .lamp {
+    background: radial-gradient(circle at 42% 34%, #ffd0d0 0%, #ff5a62 22%, var(--red) 55%, #a0000f 100%);
+    box-shadow:
+      0 0 14px 3px rgba(255, 42, 61, .85),
+      0 0 44px 10px rgba(255, 42, 61, .5),
+      inset 0 -4px 10px rgba(80, 0, 8, .5);
+  }
+
+  .readout { margin-top: 22px; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+  .big {
+    font-size: clamp(2.2rem, 10vw, 4rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: .03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .s-go .big { color: var(--accent); text-shadow: 0 0 30px rgba(70, 240, 180, .6); }
+  .s-false .big { color: var(--red); text-shadow: 0 0 30px rgba(255, 42, 61, .6); font-size: clamp(1.8rem, 8vw, 3.2rem); }
+  .rating { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; min-height: 1.4em; }
+  .detail { color: var(--muted); font-size: .9rem; min-height: 1.4em; padding: 0 6px; }
+  .again {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: .82rem;
+    letter-spacing: .1em;
+  }
+  .s-idle .again, .s-result .again, .s-false .again { color: var(--text); animation: blink 1.6s infinite; }
+  @keyframes blink { 50% { opacity: .45; } }
+
+  .history {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px 14px 10px;
+    backdrop-filter: blur(8px);
+  }
+  .history .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .history h2 { margin: 0; font-size: .78rem; letter-spacing: .16em; color: var(--muted); font-weight: 600; }
+  .linkbtn {
+    border: 0; background: none; color: var(--muted);
+    font: inherit; font-size: .75rem; cursor: pointer; text-decoration: underline;
+  }
+  .linkbtn:hover { color: var(--accent); }
+  .row {
+    display: grid;
+    grid-template-columns: 28px 1fr 64px 76px;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: .8rem;
+    font-variant-numeric: tabular-nums;
+    border-top: 1px solid rgba(255, 255, 255, .05);
+  }
+  .row:first-of-type { border-top: 0; }
+  .row .n { color: var(--muted); }
+  .row .bar { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .06); overflow: hidden; }
+  .row .bar i { display: block; height: 100%; border-radius: 4px; }
+  .row .ms { text-align: right; font-weight: 700; }
+  .row .hold { text-align: right; color: var(--muted); }
+  .row.bad .bar { background: none; color: var(--red); font-size: .72rem; font-weight: 700; letter-spacing: .08em; height: auto; }
+  .row.bad .ms { color: var(--red); }
+  .empty { color: var(--muted); font-size: .85rem; padding: 6px 0 4px; }
+  .cols { display: grid; grid-template-columns: 28px 1fr 64px 76px; gap: 8px; font-size: .66rem; letter-spacing: .1em; color: var(--muted); margin-bottom: 2px; }
+  .cols span:nth-child(3), .cols span:nth-child(4) { text-align: right; }
+
+  .hint { text-align: center; color: var(--muted); font-size: .78rem; line-height: 1.8; }
+  .hint kbd {
+    padding: 1px 7px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, .06);
+    font-family: inherit;
+    font-size: .72rem;
+  }
+</style>
+</head>
+<body>
+<a class="back" href="./">← Menu</a>
+<div class="app">
+  <header>
+    <h1>F1 REACTION</h1>
+    <p>START LIGHTS CHALLENGE</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><small>LAST</small><b id="last">—</b></div>
+    <div class="stat"><small>BEST</small><b id="best">—</b></div>
+    <div class="stat"><small>AVERAGE</small><b id="avg">—</b></div>
+    <div class="stat"><small>TRIES</small><b id="tries">0</b></div>
+  </div>
+
+  <div class="stage s-idle" id="stage">
+    <button class="sndbtn" id="soundBtn" title="Sound">🔊</button>
+
+    <div class="gantry" id="gantry">
+      <div class="col"><i class="lamp"></i><i class="lamp"></i></div>
+      <div class="col"><i class="lamp"></i><i class="lamp"></i></div>
+      <div class="col"><i class="lamp"></i><i class="lamp"></i></div>
+      <div class="col"><i class="lamp"></i><i class="lamp"></i></div>
+      <div class="col"><i class="lamp"></i><i class="lamp"></i></div>
+    </div>
+
+    <div class="readout" aria-live="polite">
+      <div class="big" id="big">Ready?</div>
+      <div class="rating" id="rating"></div>
+      <div class="detail" id="detail">Five red lights, then lights out.</div>
+    </div>
+    <div class="again" id="again">PRESS SPACE OR TAP TO START</div>
+  </div>
+
+  <div class="history">
+    <div class="head">
+      <h2>RECENT ATTEMPTS</h2>
+      <button class="linkbtn" id="clearBtn">Clear</button>
+    </div>
+    <div class="cols"><span>#</span><span>REACTION</span><span>TIME</span><span>LIGHTS OUT AFTER</span></div>
+    <div id="histList"></div>
+  </div>
+
+  <div class="hint">
+    <kbd>Space</kbd> / click / tap to react &emsp;<kbd>Esc</kbd> cancel a run<br>
+    Pressing before the lights go out is a false start. Under 0.100 s also counts as a jump start.
+  </div>
+</div>
+
+<script>
+(() => {
+  // ---------- Setup ----------
+  const SEQ = 900;                          // ms between each red light
+  const HOLD_MIN = 200, HOLD_MAX = 3200;    // random wait after all five lights are on
+  const MIN_GAP = 300;                      // two waits in a row differ by at least this much
+  const JUMP_BELOW = 100;                   // ms: reactions under this are treated as anticipation
+
+  const $ = id => document.getElementById(id);
+  const stage = $('stage');
+  const cols = Array.from(document.querySelectorAll('#gantry .col'));
+  const bigEl = $('big'), ratingEl = $('rating'), detailEl = $('detail'), againEl = $('again');
+  const lastEl = $('last'), bestEl = $('best'), avgEl = $('avg'), triesEl = $('tries');
+  const histEl = $('histList'), soundBtn = $('soundBtn'), clearBtn = $('clearBtn');
+
+  // ---------- Storage ----------
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  let best = Number(store.get('rx.best', 0)) || 0;     // all-time best, in ms (0 = none yet)
+  let soundOn = store.get('rx.sound', true) !== false;
+
+  // ---------- State ----------
+  let state = 'idle';       // idle | arming | holding | go | result | false
+  let startT = 0, litCount = 0, goAt = 0, goTime = 0, hold = 0, lastHold = 0, lockUntil = 0;
+  let results = [];         // { ms, hold } or { bad: true, note, hold }
+
+  // ---------- Sound ----------
+  let actx = null;
+  function beep(freq, dur, type, vol, slideTo) {
+    if (!soundOn) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume();
+      const t0 = actx.currentTime;
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(freq, t0);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+      g.gain.setValueAtTime(vol || .05, t0);
+      g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t0); o.stop(t0 + dur);
+    } catch (e) {}
+  }
+
+  // ---------- Helpers ----------
+  function setLamps(n) { cols.forEach((c, i) => c.classList.toggle('on', i < n)); }
+
+  function setState(s) {
+    state = s;
+    stage.className = 'stage s-' + s;
+  }
+
+  // Random wait after the fifth light. A new value every run, never close to the previous one.
+  function pickHold() {
+    let h, tries = 0;
+    do {
+      h = HOLD_MIN + Math.random() * (HOLD_MAX - HOLD_MIN);
+      tries++;
+    } while (lastHold && Math.abs(h - lastHold) < MIN_GAP && tries < 50);
+    lastHold = h;
+    return Math.round(h);
+  }
+
+  // Use the event's own timestamp when it is trustworthy (it is less affected by handler delay).
+  function evTime(e) {
+    const n = performance.now();
+    return (e && typeof e.timeStamp === 'number' && Math.abs(e.timeStamp - n) < 1000) ? e.timeStamp : n;
+  }
+
+  function rate(ms) {
+    if (ms <= 200) return { text: 'F1 DRIVER LEVEL', color: '#46f0b4' };
+    if (ms <= 250) return { text: 'EXCELLENT', color: '#3ee8ff' };
+    if (ms <= 300) return { text: 'GOOD', color: '#5b8cff' };
+    if (ms <= 400) return { text: 'AVERAGE', color: '#ff9a3c' };
+    return { text: 'KEEP PRACTICING', color: '#ff5d7a' };
+  }
+
+  const fmtHold = ms => (ms / 1000).toFixed(2) + ' s';
+  const fmtSec = ms => (ms / 1000).toFixed(3) + ' s';     // reaction times shown as 0.xxx s
+
+  // ---------- Run flow ----------
+  function begin() {
+    hold = pickHold();
+    litCount = 0;
+    startT = performance.now();
+    setLamps(0);
+    setState('arming');
+    bigEl.textContent = 'Wait for it…';
+    ratingEl.textContent = '';
+    ratingEl.style.color = '';
+    detailEl.textContent = 'Don’t move until all the lights go out.';
+    againEl.textContent = 'GET READY';
+  }
+
+  function cancelRun() {
+    setLamps(0);
+    setState('idle');
+    bigEl.textContent = 'Ready?';
+    ratingEl.textContent = '';
+    detailEl.textContent = 'Run cancelled. Nothing was recorded.';
+    againEl.textContent = 'PRESS SPACE OR TAP TO START';
+  }
+
+  function falseStart(note) {
+    results.push({ bad: true, note: 'FALSE START', hold });
+    const lightsWereOut = state === 'go';
+    setState('false');
+    setLamps(lightsWereOut ? 0 : litCount);   // leave the lamps as they were when you jumped
+    bigEl.textContent = 'FALSE START';
+    ratingEl.textContent = '';
+    ratingEl.style.color = '';
+    detailEl.textContent = note;
+    againEl.textContent = 'PRESS SPACE OR TAP TO TRY AGAIN';
+    lockUntil = performance.now() + 700;
+    beep(150, .35, 'sawtooth', .06, 70);
+    render();
+  }
+
+  function recordResult(ms) {
+    results.push({ ms, hold });
+    const prevBest = best;
+    const isBest = !best || ms < best;
+    if (isBest) { best = ms; store.set('rx.best', best); }
+    setState('result');
+    const r = rate(ms);
+    bigEl.textContent = fmtSec(ms);
+    ratingEl.textContent = r.text;
+    ratingEl.style.color = r.color;
+    detailEl.textContent = (isBest && prevBest ? 'NEW BEST! ' : isBest ? 'First time on the board! ' : '')
+      + (isBest ? '' : ms === best ? 'Ties your best. ' : '+' + fmtSec(ms - best) + ' vs your best. ')
+      + 'Lights out after ' + fmtHold(hold) + '.';
+    againEl.textContent = 'PRESS SPACE OR TAP TO GO AGAIN';
+    lockUntil = performance.now() + 400;
+    render(true);
+  }
+
+  function react(ts) {
+    const now = performance.now();
+    if (state === 'idle' || state === 'result' || state === 'false') {
+      if (now < lockUntil) return;
+      begin();
+    } else if (state === 'arming' || state === 'holding') {
+      falseStart('You moved before the lights went out.');
+    } else if (state === 'go') {
+      const ms = Math.round(ts - goTime);
+      if (ms < JUMP_BELOW) falseStart('Under ' + fmtSec(JUMP_BELOW) + ' is faster than a human can react, so it counts as a jump start.');
+      else recordResult(ms);
+    }
+  }
+
+  // ---------- Stats and history ----------
+  function pop(el) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+
+  function render(animate) {
+    const valid = results.filter(r => !r.bad);
+    const last = valid.length ? valid[valid.length - 1].ms : 0;
+    const avg = valid.length ? Math.round(valid.reduce((a, r) => a + r.ms, 0) / valid.length) : 0;
+    lastEl.textContent = last ? fmtSec(last) : '—';
+    bestEl.textContent = best ? fmtSec(best) : '—';
+    avgEl.textContent = avg ? fmtSec(avg) : '—';
+    triesEl.textContent = results.length;
+    if (animate) { pop(lastEl); if (last && last === best) pop(bestEl); }
+
+    histEl.textContent = '';
+    if (!results.length) {
+      const e = document.createElement('div');
+      e.className = 'empty';
+      e.textContent = 'No attempts yet. Your reaction times will show up here.';
+      histEl.appendChild(e);
+      return;
+    }
+    const recent = results.slice(-10).reverse();
+    recent.forEach((r, i) => {
+      const row = document.createElement('div');
+      row.className = 'row' + (r.bad ? ' bad' : '');
+      const n = document.createElement('span'); n.className = 'n'; n.textContent = results.length - i;
+      const bar = document.createElement('span'); bar.className = 'bar';
+      const ms = document.createElement('span'); ms.className = 'ms';
+      const h = document.createElement('span'); h.className = 'hold'; h.textContent = fmtHold(r.hold);
+      if (r.bad) {
+        bar.textContent = r.note;
+        ms.textContent = '—';
+      } else {
+        const fill = document.createElement('i');
+        fill.style.width = Math.min(100, Math.round(r.ms / 500 * 100)) + '%';
+        fill.style.background = rate(r.ms).color;
+        bar.appendChild(fill);
+        ms.textContent = fmtSec(r.ms);
+      }
+      row.append(n, bar, ms, h);
+      histEl.appendChild(row);
+    });
+  }
+
+  // ---------- Main loop ----------
+  function frame() {
+    requestAnimationFrame(frame);
+    const now = performance.now();
+    if (state === 'arming') {
+      const n = Math.min(5, Math.floor((now - startT) / SEQ));
+      if (n > litCount) {
+        litCount = n;
+        setLamps(n);
+        beep(360 + n * 30, .09, 'square', .035);
+        if (n === 5) {
+          setState('holding');
+          bigEl.textContent = 'Wait for it…';
+          goAt = startT + 5 * SEQ + hold;
+        }
+      }
+    } else if (state === 'holding') {
+      if (now >= goAt) {
+        setLamps(0);                       // lights out
+        goTime = performance.now();        // the clock starts right after the lights change
+        setState('go');
+        bigEl.textContent = 'GO!';
+        detailEl.textContent = '';
+        againEl.textContent = 'HIT IT!';
+      }
+    }
+  }
+
+  // ---------- Input ----------
+  document.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (k === ' ' || k === 'enter') {
+      e.preventDefault();
+      if (!e.repeat) react(evTime(e));
+    } else if (k === 'escape') {
+      if (state === 'arming' || state === 'holding' || state === 'go') cancelRun();
+    }
+  });
+  stage.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    e.preventDefault();
+    react(evTime(e));
+  });
+
+  soundBtn.addEventListener('click', e => {
+    soundOn = !soundOn;
+    store.set('rx.sound', soundOn);
+    soundBtn.textContent = soundOn ? '🔊' : '🔇';
+    if (soundOn) beep(660, .1, 'square', .035);
+    e.currentTarget.blur();
+  });
+  clearBtn.addEventListener('click', e => {
+    results = [];
+    render();
+    e.currentTarget.blur();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && (state === 'arming' || state === 'holding' || state === 'go')) cancelRun();
+  });
+
+  // ---------- Start ----------
+  soundBtn.textContent = soundOn ? '🔊' : '🔇';
+  render();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

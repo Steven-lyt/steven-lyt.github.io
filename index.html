@@ -78,6 +78,8 @@
   }
   .card.snake { --glow: rgba(70, 240, 180, .28); --edge: #46f0b4; }
   .card.tetris { --glow: rgba(179, 107, 255, .3); --edge: #b36bff; }
+  .card.runner { --glow: rgba(255, 154, 60, .3); --edge: #ff9a3c; }
+  .card.f1 { --glow: rgba(255, 42, 61, .32); --edge: #ff3b4e; }
   .icon {
     width: 64px; height: 64px;
     display: grid; place-items: center;
@@ -133,6 +135,26 @@
       </div>
     </a>
 
+    <a class="card runner" href="runner.html">
+      <div class="icon">🤖</div>
+      <h2>Neon Runner</h2>
+      <p>Jump over crystals and duck under drones. The longer you survive, the faster it gets.</p>
+      <div class="meta">
+        <span class="best" id="bestRunner">Not played yet</span>
+        <span class="go">Play →</span>
+      </div>
+    </a>
+
+    <a class="card f1" href="reaction.html">
+      <div class="icon">🏁</div>
+      <h2>F1 Reaction</h2>
+      <p>Five red lights, then lights out. React as fast as you can. The wait is random every time.</p>
+      <div class="meta">
+        <span class="best" id="bestReaction">Not played yet</span>
+        <span class="go">Play →</span>
+      </div>
+    </a>
+
     <div class="soon">MORE GAMES COMING SOON</div>
   </div>
 
@@ -146,6 +168,7 @@
   function bestOf(key) {
     try {
       const o = JSON.parse(localStorage.getItem(key) || '{}');
+      if (typeof o === 'number') return o;
       const v = Object.values(o).map(Number).filter(n => !isNaN(n));
       return v.length ? Math.max(...v) : 0;
     } catch (e) { return 0; }
@@ -156,6 +179,13 @@
   }
   show('bestSnake', 'snk.bests');
   show('bestTetris', 'tet.bests');
+  show('bestRunner', 'run.best');
+  (function () {
+    try {
+      const n = Number(JSON.parse(localStorage.getItem('rx.best') || '0'));
+      if (n > 0) document.getElementById('bestReaction').innerHTML = 'Best <b>' + (n / 1000).toFixed(3) + ' s</b>';
+    } catch (e) {}
+  })();
 </script>
 </body>
 </html>
