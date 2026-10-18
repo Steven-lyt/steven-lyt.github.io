@@ -53,7 +53,7 @@ You can also just open `index.html` in a browser.
 
 ### Notes
 
-- Made at the Vibecoding Workshop (2026/10/15), with Claude as a coding partner.
+- Built with Claude as a coding partner.
 - The hero of Volt Dash is an original character. The game is a platformer in the classic style, not a copy of any existing game.
 
 ---
@@ -85,4 +85,4 @@ You can also just open `index.html` in a browser.
 
 ### 製作
 
-在 Vibecoding Workshop（2026/10/15）製作，Claude 作為寫程式的夥伴。
+與 Claude 一起寫程式製作。
