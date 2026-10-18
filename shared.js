@@ -109,7 +109,7 @@
     'Stage 1': '第 1 關', 'Stage 2': '第 2 關', 'Stage 3': '第 3 關',
 
     // achievements
-    'Arcade Regular': '街機常客', 'Play all nine games.': '每個遊戲都玩過一次。',
+    'Arcade Regular': '街機常客', 'Play all ten games.': '每個遊戲都玩過一次。',
     'Hungry Snake': '飢餓小蛇', 'Score 10 in Snake.': '在貪吃蛇得到 10 分。',
     'Long Boy': '長長一條', 'Score 30 in Snake.': '在貪吃蛇得到 30 分。',
     'Four at Once': '一次四排', 'Clear 4 lines with one piece in Tetris.': '在俄羅斯方塊用一個方塊消除 4 行。',
@@ -136,6 +136,20 @@
     'Top Gun': '空戰之王', 'Score 20000 in Space Shooter.': '在太空射擊得到 20000 分。',
     'Boss Down': '首領倒下', 'Defeat a boss in Space Shooter.': '在太空射擊擊敗一隻首領。',
     'Fully Armed': '火力全開', 'Reach weapon level 4 in Space Shooter.': '在太空射擊把武器升到 4 級。',
+    'Sweep Rookie': '掃雷新手', 'Win an Easy game of Minesweeper.': '贏下一場簡單難度的踩地雷。',
+    'Bomb Disposal': '拆彈專家', 'Win a Medium game of Minesweeper.': '贏下一場中等難度的踩地雷。',
+    'Mine Master': '掃雷大師', 'Win a Hard game of Minesweeper.': '贏下一場困難難度的踩地雷。',
+    'Lightning Sweep': '閃電掃雷', 'Win Easy in under 40 seconds.': '在 40 秒內贏下簡單難度。',
+
+    // minesweeper
+    'Minesweeper': '踩地雷', 'NEON SWEEPER': '霓虹踩地雷',
+    'Clear the field without hitting a mine. Three sizes, a safe first click, flags and chording.': '不踩到地雷，清空整片場地。三種大小、第一步保證安全，可插旗和快速開格。',
+    'MINES': '地雷', 'Medium': '中等', 'Mode': '模式', 'Dig': '挖掘', 'Flag': '插旗',
+    'Left click to dig, right click to flag.': '左鍵挖掘，右鍵插旗。',
+    'On touch: tap to dig, long-press to flag.': '觸控：點一下挖掘，長按插旗。',
+    'Click a number to clear around it once its flags match.': '旗子數量與數字相符時，點擊數字可一次打開周圍格子。',
+    'move': '移動', 'dig': '挖掘', 'flag': '插旗',
+    'Boom! You hit a mine.': '轟！你踩到地雷了。', 'Best time {0}': '最佳時間 {0}',
 
     // space shooter
     'Space Shooter': '太空射擊', 'NEON SHOOTER': '霓虹太空射擊',
@@ -297,7 +311,7 @@
 
   // ---------------------------------------------------------------- achievements
   const ACH_LIST = [
-    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all nine games.' },
+    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all ten games.' },
     { id: 'snk_10',     icon: '🐍', name: 'Hungry Snake',       desc: 'Score 10 in Snake.' },
     { id: 'snk_30',     icon: '🐍', name: 'Long Boy',           desc: 'Score 30 in Snake.' },
     { id: 'tet_four',   icon: '🧱', name: 'Four at Once',       desc: 'Clear 4 lines with one piece in Tetris.' },
@@ -323,9 +337,13 @@
     { id: 'sp_5k',      icon: '🚀', name: 'Ace Pilot',          desc: 'Score 5000 in Space Shooter.' },
     { id: 'sp_20k',     icon: '🚀', name: 'Top Gun',            desc: 'Score 20000 in Space Shooter.' },
     { id: 'sp_boss',    icon: '🚀', name: 'Boss Down',          desc: 'Defeat a boss in Space Shooter.' },
-    { id: 'sp_max',     icon: '🚀', name: 'Fully Armed',        desc: 'Reach weapon level 4 in Space Shooter.' }
+    { id: 'sp_max',     icon: '🚀', name: 'Fully Armed',        desc: 'Reach weapon level 4 in Space Shooter.' },
+    { id: 'ms_easy',    icon: '💣', name: 'Sweep Rookie',       desc: 'Win an Easy game of Minesweeper.' },
+    { id: 'ms_med',     icon: '💣', name: 'Bomb Disposal',      desc: 'Win a Medium game of Minesweeper.' },
+    { id: 'ms_hard',    icon: '💣', name: 'Mine Master',        desc: 'Win a Hard game of Minesweeper.' },
+    { id: 'ms_fast',    icon: '💣', name: 'Lightning Sweep',    desc: 'Win Easy in under 40 seconds.' }
   ];
-  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt', 'breakout', 'td', 'shooter'];
+  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt', 'breakout', 'td', 'shooter', 'mines'];
 
   function readJSON(k, d) { try { const v = JSON.parse(lsGet(k)); return v && typeof v === 'object' ? v : d; } catch (e) { return d; } }
   let got = readJSON('arcade.ach', {});

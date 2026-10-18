@@ -82,6 +82,7 @@
   .card.f1 { --glow: rgba(255, 42, 61, .32); --edge: #ff3b4e; }
   .card.n2048 { --glow: rgba(255, 210, 63, .28); --edge: #ffd23f; }
   .card.volt { --glow: rgba(91, 140, 255, .32); --edge: #5b8cff; }
+  .card.mines { --glow: rgba(163, 230, 53, .28); --edge: #a3e635; }
   .card.shooter { --glow: rgba(138, 123, 255, .32); --edge: #8a7bff; }
   .card.td { --glow: rgba(62, 232, 255, .3); --edge: #3ee8ff; }
   .card.breakout { --glow: rgba(255, 77, 157, .3); --edge: #ff4d9d; }
@@ -234,6 +235,16 @@
       </div>
     </a>
 
+    <a class="card mines" href="mines.html">
+      <div class="icon">💣</div>
+      <h2>Minesweeper</h2>
+      <p>Clear the field without hitting a mine. Three sizes, a safe first click, flags and chording.</p>
+      <div class="meta">
+        <span class="best" id="bestMines">Not played yet</span>
+        <span class="go">Play →</span>
+      </div>
+    </a>
+
     <div class="soon">MORE GAMES COMING SOON</div>
   </div>
 
@@ -269,6 +280,17 @@
   show('bestBreakout', 'bo.best');
   show('bestTD', 'td.best');
   show('bestShooter', 'sh.best');
+  (function () {
+    try {
+      const o = JSON.parse(localStorage.getItem('ms.best') || '{}');
+      for (const [k, n] of [['hard', 'Hard'], ['medium', 'Medium'], ['easy', 'Easy']]) {
+        if (typeof o[k] === 'number' && o[k] > 0) {
+          document.getElementById('bestMines').innerHTML = '<span>Best</span> <span>' + n + '</span> <b>' + o[k].toFixed(1) + 's</b>';
+          break;
+        }
+      }
+    } catch (e) {}
+  })();
   (function () {
     if (!window.ACH) return;
     const t = window.I18N ? I18N.t : s => s;

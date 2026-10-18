@@ -1,6 +1,6 @@
 # Steven's Arcade 🎮
 
-A small browser arcade: nine games in plain HTML, CSS and JavaScript. No frameworks, no build step.
+A small browser arcade: ten games in plain HTML, CSS and JavaScript. No frameworks, no build step.
 
 **Play it here → https://steven-lyt.github.io/**
 
@@ -25,12 +25,13 @@ A small browser arcade: nine games in plain HTML, CSS and JavaScript. No framewo
 | ![Breakout](screenshots/breakout.jpg) | **Breakout** | Classic brick breaker. 5 levels, tough and steel bricks, and power-ups: wide paddle, multiball, slow, laser and extra life. |
 | ![Tower Defense](screenshots/towerdefense.jpg) | **Tower Defense** | Build and upgrade 4 kinds of towers to stop 20 waves. 3 maps, boss waves, target modes and 1×–3× speed. |
 | ![Space Shooter](screenshots/shooter.jpg) | **Space Shooter** | Auto-fire vertical shooter. 4 enemy types, a boss every stage, 4 weapon levels, shields and bombs. |
+| ![Minesweeper](screenshots/mines.jpg) | **Minesweeper** | Three board sizes, a safe first click, flags, chording, and best times. Long-press to flag on touch. |
 
 ### Features
 
 - **Works on desktop and mobile.** Keyboard on a computer, on-screen buttons or swipes on a phone.
 - **English / 中文 switch** (top right of every page). The choice is saved.
-- **27 achievements** that unlock as you play. They show on the menu page.
+- **31 achievements** that unlock as you play. They show on the menu page.
 - **Best scores and progress are saved in your browser** (`localStorage`). Nothing is sent anywhere.
 - **Every game is one self-contained file.** Shared code (language and achievements) lives in `shared.js`.
 
@@ -39,7 +40,7 @@ A small browser arcade: nine games in plain HTML, CSS and JavaScript. No framewo
 ```
 index.html      menu, best scores, achievements
 shared.js       language switch + achievements
-snake.html  tetris.html  runner.html  reaction.html  2048.html  volt.html  breakout.html  towerdefense.html  shooter.html
+snake.html  tetris.html  runner.html  reaction.html  2048.html  volt.html  breakout.html  towerdefense.html  shooter.html  mines.html
 screenshots/    images used in this README
 ```
 
@@ -79,12 +80,13 @@ You can also just open `index.html` in a browser.
 | **打磚塊** | 經典打磚塊。5 個關卡，有硬磚和鋼磚，道具包括加寬、多球、減速、雷射和加一命。 |
 | **塔防** | 建造並升級 4 種防禦塔，擋下 20 波敵人。3 張地圖、首領關、可切換攻擊目標，還有 1×–3× 速度。 |
 | **太空射擊** | 自動射擊的直向射擊遊戲。4 種敵人、每關一隻首領、4 級武器、護盾和炸彈。 |
+| **踩地雷** | 三種大小、第一步保證安全，可插旗、快速開格，並記錄最佳時間。觸控長按可插旗。 |
 
 ### 特色
 
 - 電腦用鍵盤，手機用螢幕按鈕或滑動。
 - 每個頁面右上角可以切換 **English / 中文**，選擇會被記住。
-- **27 個成就**，在選單頁顯示。
+- **31 個成就**，在選單頁顯示。
 - 最高分和進度都存在你的瀏覽器（`localStorage`），不會傳送到任何地方。
 
 ### 製作
