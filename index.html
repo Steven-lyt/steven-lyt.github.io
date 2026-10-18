@@ -83,7 +83,7 @@
   .hero h2 { margin: 0; font-size: clamp(1.6rem, 4.4vw, 2.2rem); font-weight: 800; line-height: 1.15; }
   .hero p { margin: 0; max-width: 40ch; color: var(--muted); font-size: .92rem; }
   .hero .pic { position: relative; min-height: 180px; }
-  .hero .pic img {
+  .hero .pic img, .hero .pic video {
     position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
     -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 38%);
     mask-image: linear-gradient(90deg, transparent 0, #000 38%);
@@ -139,8 +139,10 @@
   }
   .card:focus-visible { outline: 2px solid var(--c); outline-offset: 3px; border-radius: 18px; }
   .thumb { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: #0a0e20; }
-  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s; }
-  .card:hover .thumb img { transform: scale(1.05); }
+  .thumb img, .thumb video, .hero .pic video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb video { position: absolute; inset: 0; opacity: 0; transition: opacity .25s; }
+  .hero .pic video { opacity: 0; transition: opacity .4s; }
+  .thumb video.on, .hero .pic video.on { opacity: 1; }
   .thumb::after { content: ""; position: absolute; inset: auto 0 0 0; height: 46%; background: linear-gradient(to top, rgba(11, 16, 32, .85), transparent); }
   .thumb .tag, .thumb .new {
     position: absolute; z-index: 1; top: 10px; padding: 2px 10px; border-radius: 999px;
@@ -155,9 +157,9 @@
     margin: 0; color: var(--muted); font-size: .82rem; line-height: 1.55;
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .foot { margin-top: auto; padding-top: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .go { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 700; color: var(--c); }
-  .go::before { content: ""; border-style: solid; border-width: 4px 0 4px 7px; border-color: transparent transparent transparent currentColor; }
+  .trophy { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .trophy.full { color: var(--gold); }
+  .foot { margin-top: auto; padding-top: 6px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
 
   /* ---- achievements */
   .ach { margin-top: 34px; border-radius: 20px; border: 1px solid var(--border); background: var(--panel); scroll-margin-top: 16px; }
@@ -195,11 +197,14 @@
   @media (max-width: 760px) {
     main { padding-top: 56px; }
     .hero { grid-template-columns: 1fr; min-height: 0; }
-    .hero .pic { order: -1; aspect-ratio: 16 / 9; min-height: 0; }
-    .hero .pic img { -webkit-mask-image: linear-gradient(0deg, transparent 0, #000 45%); mask-image: linear-gradient(0deg, transparent 0, #000 45%); }
-    .hero .text { padding: 4px 20px 22px; margin-top: -26px; }
+    .hero .pic { order: -1; aspect-ratio: 2 / 1; min-height: 0; }
+    .hero .pic img, .hero .pic video { -webkit-mask-image: linear-gradient(0deg, transparent 0, #000 45%); mask-image: linear-gradient(0deg, transparent 0, #000 45%); }
+    .hero .text { padding: 0 18px 18px; margin-top: -22px; gap: 8px; }
+    .hero p { font-size: .86rem; }
   }
   @media (max-width: 560px) {
+    .stats { gap: 6px; }
+    .pill, button.pill { padding: 4px 10px; font-size: .74rem; }
     .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .body { padding: 10px 11px 12px; }
     .card h2 { font-size: .95rem; }
@@ -210,7 +215,7 @@
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
     .card:hover, .card:focus-visible { transform: none; }
-    .card:hover .thumb img { transform: none; }
+    .thumb video { display: none; }
   }
 </style>
 <script src="shared.js"></script>
@@ -317,6 +322,38 @@
     return box;
   }
   const thumbOf = g => 'thumbs/' + (g.thumb || g.id) + '.webp';
+  const clipOf = g => 'clips/' + (g.thumb || g.id);
+
+  // Achievement id prefix -> game (or a label pair for the arcade-wide group).
+  const PREFIX = { all: ['🕹️', 'Arcade'], snk: 'snake', tet: 'tetris', run: 'runner', rx: 'reaction', g: '2048', vd: 'volt', bo: 'breakout', td: 'td', sp: 'shooter', ms: 'mines' };
+  const trophies = {};
+  if (window.ACH) for (const a of ACH.list()) {
+    const k = a.id.split('_')[0];
+    const t = trophies[k] || (trophies[k] = { got: 0, total: 0 });
+    t.total++; if (a.unlocked) t.got++;
+  }
+  const trophyOf = g => { const k = Object.keys(PREFIX).find(k => PREFIX[k] === g.id); return k ? trophies[k] : null; };
+
+  // Short gameplay loops: autoplay in the hero, hover/focus on desktop, in-view on touch.
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const canHover = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  function makeClip(g) {
+    const v = el('video'); v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'none';
+    v.setAttribute('aria-hidden', 'true'); v.disablePictureInPicture = true; v.tabIndex = -1;
+    v.addEventListener('playing', () => v.classList.add('on'));
+    v.dataset.src = clipOf(g);
+    return v;
+  }
+  const playClip = v => {
+    if (!v.firstChild) {
+      for (const [ext, type] of [['webm', 'video/webm'], ['mp4', 'video/mp4']]) {
+        const s = el('source'); s.src = v.dataset.src + '.' + ext; s.type = type; v.appendChild(s);
+      }
+      v.load();
+    }
+    const p = v.play(); if (p) p.catch(() => {});
+  };
+  const stopClip = v => { v.pause(); v.classList.remove('on'); };
 
   // ------------------------------------------------------------ header stats
   const totalPlays = Object.values(plays).reduce((s, p) => s + (p && p.n || 0), 0);
@@ -360,16 +397,29 @@
     const pic = el('div', 'pic');
     const img = el('img'); img.src = thumbOf(g); img.alt = ''; img.width = 720; img.height = 540; img.decoding = 'async';
     pic.appendChild(img);
+    if (!reduceMotion) { const v = makeClip(g); pic.appendChild(v); playClip(v); }
     h.appendChild(text); h.appendChild(pic);
   })();
 
   // ------------------------------------------------------------ cards + filter
   const grid = $('grid');
+  const inView = 'IntersectionObserver' in window ? new IntersectionObserver(es => {
+    for (const e of es) { if (e.isIntersecting) playClip(e.target._v); else stopClip(e.target._v); }
+  }, { threshold: 0.65 }) : null;
   GAMES.forEach((g, i) => {
     const a = el('a', 'card'); a.href = g.href; a.dataset.cat = g.cat; a.style.setProperty('--c', g.c);
     const th = el('div', 'thumb');
     const img = el('img'); img.src = thumbOf(g); img.alt = ''; img.width = 720; img.height = 540; img.loading = 'lazy'; img.decoding = 'async';
     th.appendChild(img);
+    if (!reduceMotion) {
+      const v = makeClip(g); th.appendChild(v);
+      if (canHover) {
+        a.addEventListener('mouseenter', () => playClip(v)); a.addEventListener('mouseleave', () => stopClip(v));
+        a.addEventListener('focus', () => playClip(v)); a.addEventListener('blur', () => stopClip(v));
+      } else if ('IntersectionObserver' in window) {
+        inView.observe(a); a._v = v;
+      }
+    }
     th.appendChild(el('span', 'tag', g.cat));
     if (g.id === NEWEST) th.appendChild(el('span', 'new', 'New'));
     const body = el('div', 'body');
@@ -377,7 +427,13 @@
     body.appendChild(h2);
     body.appendChild(el('p', null, g.desc));
     const foot = el('div', 'foot');
-    foot.appendChild(bestNode(g)); foot.appendChild(el('span', 'go', 'Play'));
+    foot.appendChild(bestNode(g));
+    const tr = trophyOf(g);
+    if (tr) {
+      const t = el('span', 'trophy' + (tr.got === tr.total ? ' full' : '')); t.title = 'Achievements';
+      t.appendChild(el('span', null, '🏆')); t.appendChild(document.createTextNode(' ' + tr.got + '/' + tr.total));
+      foot.appendChild(t);
+    }
     body.appendChild(foot);
     a.appendChild(th); a.appendChild(body);
     grid.appendChild(a);
@@ -404,7 +460,6 @@
     const list = ACH.list(), got = list.filter(a => a.unlocked).length;
     $('achN').textContent = got + ' / ' + list.length;
     $('achBar').style.width = Math.round(got / list.length * 100) + '%';
-    const PREFIX = { all: ['🕹️', 'Arcade'], snk: 'snake', tet: 'tetris', run: 'runner', rx: 'reaction', g: '2048', vd: 'volt', bo: 'breakout', td: 'td', sp: 'shooter', ms: 'mines' };
     const groups = new Map();
     for (const a of list) {
       const key = a.id.split('_')[0];

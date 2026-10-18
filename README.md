@@ -31,7 +31,7 @@ A small browser arcade: ten games in plain HTML, CSS and JavaScript. No framewor
 
 - **Works on desktop and mobile.** Keyboard on a computer, on-screen buttons or swipes on a phone.
 - **English / 中文 switch** (top right of every page). The choice is saved.
-- **A menu that remembers you.** It shows the game you played last, filters games by type (Action, Puzzle, Strategy, Skill), has a random-game button, and shows your best scores.
+- **A menu that remembers you.** It shows the game you played last, filters games by type (Action, Puzzle, Strategy, Skill), has a random-game button, and shows your best scores and achievement progress. Each card plays a short gameplay clip when you hover over it.
 - **31 achievements** that unlock as you play, grouped by game on the menu page.
 - **Best scores and progress are saved in your browser** (`localStorage`). Nothing is sent anywhere.
 - **Every game is one self-contained file.** Shared code (language and achievements) lives in `shared.js`.
@@ -43,6 +43,7 @@ index.html      menu: last played, filters, best scores, achievements
 shared.js       language switch + achievements
 snake.html  tetris.html  runner.html  reaction.html  2048.html  volt.html  breakout.html  towerdefense.html  shooter.html  mines.html
 thumbs/         game thumbnails used on the menu
+clips/          short gameplay previews (webm + mp4)
 screenshots/    images used in this README
 ```
 
@@ -88,7 +89,7 @@ You can also just open `index.html` in a browser.
 
 - 電腦用鍵盤，手機用螢幕按鈕或滑動。
 - 每個頁面右上角可以切換 **English / 中文**，選擇會被記住。
-- **會記住你的選單**：顯示上次玩的遊戲、依類型篩選（動作、益智、策略、技巧）、隨機選一款，並顯示最高分。
+- **會記住你的選單**：顯示上次玩的遊戲、依類型篩選（動作、益智、策略、技巧）、隨機選一款，並顯示最高分與成就進度；滑鼠移到卡片上會播放遊戲短片。
 - **31 個成就**，在選單頁依遊戲分組顯示。
 - 最高分和進度都存在你的瀏覽器（`localStorage`），不會傳送到任何地方。
 
