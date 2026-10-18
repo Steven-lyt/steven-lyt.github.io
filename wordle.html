@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neon Word</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔤</text></svg>">
+<style>
+  :root {
+    --bg1: #0b1020; --bg2: #1a1038;
+    --panel: rgba(255, 255, 255, .06); --border: rgba(255, 255, 255, .12);
+    --text: #e8ecff; --muted: #8e97c0; --accent: #46f0b4; --accent2: #5b8cff;
+    --ok: #2fd9a0; --near: #ffc933; --miss: #2b3258; --pink: #e879f9;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    display: flex; align-items: center; justify-content: center;
+    background:
+      radial-gradient(1200px 700px at 15% -10%, #25306b 0%, transparent 60%),
+      radial-gradient(900px 600px at 100% 110%, #4a1d6b 0%, transparent 55%),
+      linear-gradient(160deg, var(--bg1), var(--bg2));
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+  .app { position: relative; width: min(94vw, 480px); padding: 42px 0 14px; }
+  header { position: relative; text-align: center; margin-bottom: 8px; }
+  h1 {
+    margin: 0; font-size: clamp(1.6rem, 6.5vw, 2.3rem); font-weight: 800; letter-spacing: .1em;
+    background: linear-gradient(90deg, #e879f9, #5b8cff, #46f0b4);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: .72rem; letter-spacing: .24em; }
+  .iconbtn {
+    position: absolute; top: 2px; width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--border); background: rgba(255, 255, 255, .08);
+    color: var(--text); font: inherit; font-size: .9rem; cursor: pointer; display: grid; place-items: center;
+  }
+  .iconbtn:hover { border-color: var(--accent); color: var(--accent); }
+  #helpBtn { left: 0; } #statBtn { right: 0; }
+  .bar { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .chip {
+    padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--muted); font: inherit; font-size: .8rem; cursor: pointer;
+  }
+  .chip.on { color: var(--pink); border-color: var(--pink); background: rgba(232, 121, 249, .1); }
+  .chip:hover { border-color: var(--accent); }
+  .chip.sw.on { color: var(--accent); border-color: var(--accent); background: rgba(70, 240, 180, .08); }
+
+  .toasts { position: absolute; left: 0; right: 0; top: 150px; z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+  .toast { padding: 8px 16px; border-radius: 10px; background: #e8ecff; color: #0b1020; font-weight: 700; font-size: .88rem; box-shadow: 0 8px 24px rgba(0, 0, 0, .4); animation: toastIn .15s; }
+  .toast.out { opacity: 0; transition: opacity .3s; }
+  @keyframes toastIn { from { transform: translateY(-6px); opacity: 0; } }
+
+  .board {
+    --gap: 6px;
+    width: min(100%, 330px, calc((100vh - 400px) * 5 / 6));
+    width: min(100%, 330px, calc((100dvh - 400px) * 5 / 6));
+    min-width: 220px;
+    margin: 0 auto 12px; display: grid; grid-template-rows: repeat(6, 1fr); gap: var(--gap);
+  }
+  .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--gap); }
+  .row.shake { animation: shake .5s; }
+  @keyframes shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px); } 30%, 50%, 70% { transform: translateX(-6px); } 40%, 60% { transform: translateX(6px); } }
+  .tile {
+    aspect-ratio: 1; display: grid; place-items: center;
+    border: 2px solid rgba(255, 255, 255, .16); border-radius: 8px; background: rgba(255, 255, 255, .03);
+    font-weight: 800; font-size: clamp(1.4rem, 7vw, 2rem); text-transform: uppercase; color: var(--text);
+    transition: border-color .1s;
+  }
+  .tile[data-s="tbd"] { border-color: rgba(255, 255, 255, .5); animation: pop .1s; }
+  @keyframes pop { 50% { transform: scale(1.1); } }
+  .tile[data-s="correct"] { background: var(--ok); border-color: var(--ok); color: #05261b; box-shadow: 0 0 14px rgba(47, 217, 160, .35); }
+  .tile[data-s="present"] { background: var(--near); border-color: var(--near); color: #2a1d00; box-shadow: 0 0 14px rgba(255, 201, 51, .3); }
+  .tile[data-s="absent"] { background: var(--miss); border-color: var(--miss); color: #b9c0e6; }
+  .tile.flip { animation: flip .5s ease-in-out; }
+  @keyframes flip { 0% { transform: rotateX(0); } 50% { transform: rotateX(-90deg); } 100% { transform: rotateX(0); } }
+  .tile.bounce { animation: bounce .6s; }
+  @keyframes bounce { 0%, 20% { transform: translateY(0); } 40% { transform: translateY(-14px); } 50% { transform: translateY(2px); } 60% { transform: translateY(-6px); } 80% { transform: translateY(0); } }
+
+  .kb { display: flex; flex-direction: column; gap: 6px; margin: 0 auto; width: 100%; }
+  .kr { display: flex; justify-content: center; gap: 5px; }
+  .key {
+    flex: 1 1 0; max-width: 44px; height: 52px; border-radius: 8px; border: 0;
+    background: rgba(255, 255, 255, .13); color: var(--text); font: inherit; font-weight: 700; font-size: .95rem;
+    text-transform: uppercase; cursor: pointer; touch-action: manipulation; padding: 0;
+  }
+  .key.wide { flex: 1.6 1 0; max-width: 68px; font-size: .72rem; }
+  .key:active { filter: brightness(1.3); }
+  .key[data-s="correct"] { background: var(--ok); color: #05261b; }
+  .key[data-s="present"] { background: var(--near); color: #2a1d00; }
+  .key[data-s="absent"] { background: #1a2040; color: #6b739c; }
+
+  .modal { position: fixed; inset: 0; z-index: 20; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(6, 9, 22, .8); backdrop-filter: blur(3px); overflow-y: auto; }
+  .modal.show { display: flex; animation: fade .2s; }
+  @keyframes fade { from { opacity: 0; } }
+  .card {
+    position: relative; width: min(100%, 400px); margin: auto; padding: 22px 20px 20px; border-radius: 20px;
+    background: #121838; border: 1px solid var(--border); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); text-align: center;
+  }
+  .card h2 { margin: 0 0 4px; font-size: 1.4rem; letter-spacing: .04em; }
+  .card .mode { color: var(--muted); font-size: .78rem; margin-bottom: 10px; min-height: 1em; }
+  .x { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); font-size: 1.1rem; cursor: pointer; }
+  .x:hover { color: var(--text); }
+  .answer { margin: 6px 0 12px; font-size: 1.1rem; }
+  .answer b { display: inline-block; margin-left: 6px; padding: 2px 12px; border-radius: 8px; background: var(--ok); color: #05261b; letter-spacing: .12em; text-transform: uppercase; }
+  .stats4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0 14px; }
+  .stats4 div { padding: 8px 2px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
+  .stats4 b { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+  .stats4 small { display: block; color: var(--muted); font-size: .66rem; }
+  .dist { display: grid; gap: 4px; margin: 0 0 14px; text-align: left; }
+  .dist h3 { margin: 0 0 2px; font-size: .78rem; color: var(--muted); font-weight: 600; text-align: center; }
+  .dr { display: flex; align-items: center; gap: 6px; font-size: .78rem; }
+  .dr span { width: 10px; text-align: right; color: var(--muted); }
+  .dr i { display: block; min-width: 22px; padding: 1px 6px; border-radius: 4px; background: #333b6a; font-style: normal; font-weight: 700; text-align: right; font-size: .76rem; }
+  .dr i.hit { background: var(--ok); color: #05261b; }
+  .foot { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+  .next { color: var(--muted); font-size: .8rem; }
+  .next b { color: var(--text); font-variant-numeric: tabular-nums; }
+  .btn {
+    padding: 10px 22px; border-radius: 14px; border: 0;
+    background: linear-gradient(135deg, #e879f9, #5b8cff); color: #fff;
+    font: inherit; font-weight: 800; font-size: .92rem; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(155, 100, 255, .3); transition: transform .12s, filter .12s;
+  }
+  .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .btn.alt { background: var(--panel); color: var(--text); border: 1px solid var(--border); box-shadow: none; }
+  .help { text-align: left; font-size: .86rem; line-height: 1.65; color: var(--muted); }
+  .help p { margin: 6px 0; }
+  .help b { color: var(--text); }
+  .ex { display: grid; grid-template-columns: repeat(5, 36px); gap: 4px; margin: 8px 0 4px; }
+  .ex .tile { font-size: 1.1rem; border-radius: 6px; }
+  .hint { margin-top: 8px; text-align: center; color: var(--muted); font-size: .74rem; }
+  .back {
+    position: absolute; top: 8px; left: 10px; z-index: 5; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    font-size: .75rem; text-decoration: none; backdrop-filter: blur(6px);
+  }
+  .back:hover { color: var(--accent); border-color: var(--accent); }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { .tile, .row { animation: none !important; } .tile.flip, .tile.bounce { animation: none !important; } }
+</style>
+<script src="shared.js"></script>
+<script src="words.js"></script>
+</head>
+<body>
+<a class="back" href="./">← Menu</a>
+<div class="app">
+  <header>
+    <button class="iconbtn" id="helpBtn" title="How to play">?</button>
+    <h1>NEON WORD</h1>
+    <p>CLASSIC ARCADE</p>
+    <button class="iconbtn" id="statBtn" title="Statistics">▥</button>
+  </header>
+
+  <div class="bar">
+    <button class="chip on" data-m="daily">Daily</button>
+    <button class="chip" data-m="free">Unlimited</button>
+    <button class="chip sw" id="hardChip">Hard mode</button>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+  <div class="board" id="board"></div>
+  <div class="kb" id="kb"></div>
+  <div class="hint">Guess the five-letter word in six tries.</div>
+</div>
+
+<div class="modal" id="mHelp">
+  <div class="card">
+    <button class="x" data-close>✕</button>
+    <h2>How to play</h2>
+    <div class="help">
+      <p>Guess the hidden five-letter English word in six tries.</p>
+      <p>Each guess must be a real word. After each guess, the tiles change colour:</p>
+      <div class="ex" id="ex"></div>
+      <p><b>Green</b>: right letter, right spot.</p>
+      <p><b>Yellow</b>: the letter is in the word, but in another spot.</p>
+      <p><b>Grey</b>: the letter is not in the word.</p>
+      <p><b>Daily</b>: one new word every day, the same for everyone.</p>
+      <p><b>Unlimited</b>: play as many words as you like.</p>
+      <p><b>Hard mode</b>: every hint you find must be used in your next guess.</p>
+    </div>
+    <div class="foot" style="margin-top:12px"><button class="btn" data-close>Play</button></div>
+  </div>
+</div>
+
+<div class="modal" id="mStat">
+  <div class="card">
+    <button class="x" data-close>✕</button>
+    <h2 id="sTitle">Statistics</h2>
+    <div class="mode" id="sMode"></div>
+    <div class="answer" id="sAns" hidden><span>The word was</span><b id="sWord"></b></div>
+    <div class="stats4">
+      <div><b id="stP">0</b><small>Played</small></div>
+      <div><b id="stW">0</b><small>Win %</small></div>
+      <div><b id="stS">0</b><small>Streak</small></div>
+      <div><b id="stM">0</b><small>Best streak</small></div>
+    </div>
+    <div class="dist" id="dist"><h3>Guess distribution</h3></div>
+    <div class="foot">
+      <div class="next" id="next" hidden><span>Next word in</span> <b id="nextT">00:00:00</b></div>
+      <button class="btn alt" id="shareBtn" hidden>Share</button>
+      <button class="btn" id="newBtn" hidden>New word</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const t = window.I18N ? I18N.t : s => s;
+  const f = window.I18N ? I18N.f : (k, ...a) => a.reduce((s, v, i) => s.split('{' + i + '}').join(v), k);
+  const ach = id => { if (window.ACH) ACH.unlock(id); };
+  if (window.ACH) ACH.played('wordle');
+  const $ = id => document.getElementById(id);
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function lsJSON(k, d) { try { const v = JSON.parse(lsGet(k)); return v && typeof v === 'object' ? v : d; } catch (e) { return d; } }
+
+  // ============================================================ words
+  const ANSWERS = (window.WORDS ? WORDS.answers : 'crane slate house water light').split(' ');
+  const VALID = new Set(ANSWERS.concat(window.WORDS ? WORDS.valid.split(' ') : []));
+  const MAXG = 6, LEN = 5;
+
+  // Daily word: days since the start date (local time), picked from the pre-shuffled answers.
+  const EPOCH = Math.floor(Date.UTC(2026, 9, 18) / 864e5);
+  let dayOverride = null;
+  function dayIdx() {
+    if (dayOverride != null) return dayOverride;
+    const d = new Date();
+    return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5);
+  }
+  const dailyWord = idx => ANSWERS[((idx % ANSWERS.length) + ANSWERS.length) % ANSWERS.length];
+
+  function score(guess, ans) {
+    const res = new Array(LEN).fill('absent'), cnt = {};
+    for (let i = 0; i < LEN; i++) { if (guess[i] === ans[i]) res[i] = 'correct'; else cnt[ans[i]] = (cnt[ans[i]] || 0) + 1; }
+    for (let i = 0; i < LEN; i++) if (res[i] !== 'correct' && cnt[guess[i]] > 0) { res[i] = 'present'; cnt[guess[i]]--; }
+    return res;
+  }
+  // Hard mode: reuse every green in place and every yellow somewhere.
+  function hardCheck(guess, rows, ans) {
+    for (const g of rows) {
+      const sc = score(g, ans), need = {};
+      for (let i = 0; i < LEN; i++) {
+        if (sc[i] === 'correct' && guess[i] !== g[i]) return true;
+        if (sc[i] !== 'absent') need[g[i]] = (need[g[i]] || 0) + 1;
+      }
+      for (const ch in need) if (guess.split(ch).length - 1 < need[ch]) return true;
+    }
+    return false;
+  }
+
+  // ============================================================ state
+  let mode = lsGet('wd.mode') === 'free' ? 'free' : 'daily';
+  let hard = lsGet('wd.hard') === 'on';
+  let G = null;                 // {answer, guesses:[], status:'play'|'won'|'lost', hard, day?}
+  let cur = '';
+  let busy = false;             // true while tiles are flipping
+  const blank = () => ({ played: 0, wins: 0, streak: 0, max: 0, dist: [0, 0, 0, 0, 0, 0], last: -1 });
+  let stats = lsJSON('wd.stats', {});
+  stats.daily = Object.assign(blank(), stats.daily || {}); stats.free = Object.assign(blank(), stats.free || {});
+  const save = () => lsSet('wd.stats', JSON.stringify(stats));
+
+  function newFree() { let w; do { w = ANSWERS[Math.floor(Math.random() * ANSWERS.length)]; } while (G && w === G.answer && ANSWERS.length > 1); return { answer: w, guesses: [], status: 'play', hard }; }
+  function loadGame() {
+    if (mode === 'daily') {
+      const d = dayIdx(), s = lsJSON('wd.daily', null);
+      G = s && s.day === d && s.answer === dailyWord(d) ? s : { day: d, answer: dailyWord(d), guesses: [], status: 'play', hard };
+    } else {
+      const s = lsJSON('wd.free', null);
+      G = s && s.answer && VALID.has(s.answer) ? s : newFree();
+    }
+    cur = '';
+  }
+  function persist() { lsSet(mode === 'daily' ? 'wd.daily' : 'wd.free', JSON.stringify(G)); }
+
+  // ============================================================ DOM
+  const boardEl = $('board'), kbEl = $('kb');
+  const rows = [], tiles = [];
+  for (let r = 0; r < MAXG; r++) {
+    const row = document.createElement('div'); row.className = 'row'; tiles[r] = [];
+    for (let c = 0; c < LEN; c++) { const tl = document.createElement('div'); tl.className = 'tile'; tl.dataset.s = 'empty'; row.appendChild(tl); tiles[r].push(tl); }
+    boardEl.appendChild(row); rows.push(row);
+  }
+  const KEYS = ['qwertyuiop', 'asdfghjkl', '+zxcvbnm-'];
+  const keyEls = {};
+  for (const line of KEYS) {
+    const kr = document.createElement('div'); kr.className = 'kr';
+    for (const ch of line) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'key';
+      if (ch === '+') { b.classList.add('wide'); b.textContent = 'ENTER'; b.dataset.k = 'Enter'; }
+      else if (ch === '-') { b.classList.add('wide'); b.textContent = '⌫'; b.dataset.k = 'Backspace'; b.setAttribute('aria-label', 'Delete'); }
+      else { b.textContent = ch; b.dataset.k = ch; keyEls[ch] = b; }
+      b.addEventListener('click', () => { handleKey(b.dataset.k); b.blur(); });
+      kr.appendChild(b);
+    }
+    kbEl.appendChild(kr);
+  }
+  // help example
+  (function () {
+    const ex = $('ex'), demo = [['c', 'correct'], ['r', 'absent'], ['a', 'present'], ['n', 'absent'], ['e', 'absent']];
+    for (const [ch, s] of demo) { const tl = document.createElement('div'); tl.className = 'tile'; tl.dataset.s = s; tl.textContent = ch; ex.appendChild(tl); }
+  })();
+
+  function toast(msg, ms) {
+    const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg;
+    $('toasts').prepend(el);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, ms || 1400);
+  }
+
+  function paintRow(r, word, states) {
+    for (let c = 0; c < LEN; c++) {
+      const tl = tiles[r][c];
+      tl.textContent = word[c] || '';
+      tl.dataset.s = states ? states[c] : (word[c] ? 'tbd' : 'empty');
+      tl.classList.remove('flip', 'bounce');
+    }
+  }
+  function keyStates() {
+    const best = {}, rank = { absent: 1, present: 2, correct: 3 };
+    for (const g of G.guesses) { const sc = score(g, G.answer); for (let i = 0; i < LEN; i++) if (!best[g[i]] || rank[sc[i]] > rank[best[g[i]]]) best[g[i]] = sc[i]; }
+    return best;
+  }
+  function paintKeys() {
+    const best = keyStates();
+    for (const ch in keyEls) { if (best[ch]) keyEls[ch].dataset.s = best[ch]; else delete keyEls[ch].dataset.s; }
+  }
+  function render() {
+    for (let r = 0; r < MAXG; r++) {
+      if (r < G.guesses.length) paintRow(r, G.guesses[r], score(G.guesses[r], G.answer));
+      else if (r === G.guesses.length && G.status === 'play') paintRow(r, cur, null);
+      else paintRow(r, '', null);
+    }
+    paintKeys();
+    document.querySelectorAll('.chip[data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === mode));
+    syncHard();
+  }
+  function syncHard() {
+    const on = G.guesses.length ? G.hard : hard;
+    $('hardChip').classList.toggle('on', on);
+    $('hardChip').textContent = 'Hard mode: ' + (on ? 'On' : 'Off');
+  }
+
+  // ============================================================ input
+  function handleKey(k) {
+    if (busy || !G || G.status !== 'play' || document.querySelector('.modal.show')) return;
+    if (k === 'Enter') return submit();
+    if (k === 'Backspace') { if (cur) { cur = cur.slice(0, -1); paintRow(G.guesses.length, cur, null); } return; }
+    if (/^[a-z]$/.test(k) && cur.length < LEN) { cur += k; paintRow(G.guesses.length, cur, null); }
+  }
+  window.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === 'Escape') { closeModals(); return; }
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (k === 'Enter' || k === 'Backspace' || /^[a-z]$/.test(k)) {
+      if (document.activeElement && document.activeElement.tagName === 'BUTTON' && k === 'Enter') e.preventDefault();
+      handleKey(k);
+    }
+  });
+
+  function shakeRow(r, msg) {
+    rows[r].classList.remove('shake'); void rows[r].offsetWidth; rows[r].classList.add('shake');
+    toast(msg);
+  }
+  function submit() {
+    const r = G.guesses.length;
+    if (cur.length < LEN) return shakeRow(r, t('Not enough letters'));
+    if (!VALID.has(cur)) return shakeRow(r, t('Not in word list'));
+    if (G.hard && hardCheck(cur, G.guesses, G.answer)) return shakeRow(r, t('Hard mode: use the revealed hints'));
+    if (r === 0) G.hard = hard;
+    const word = cur; G.guesses.push(word); cur = '';
+    const sc = score(word, G.answer);
+    busy = true;
+    const won = word === G.answer, lost = !won && G.guesses.length >= MAXG;
+    G.status = won ? 'won' : lost ? 'lost' : 'play';
+    persist();
+    for (let c = 0; c < LEN; c++) {
+      const tl = tiles[r][c];
+      setTimeout(() => { tl.classList.remove('flip'); void tl.offsetWidth; tl.classList.add('flip'); }, c * 260);
+      setTimeout(() => { tl.dataset.s = sc[c]; }, c * 260 + 250);
+    }
+    setTimeout(() => {
+      busy = false; paintKeys(); syncHard();
+      if (won) {
+        const MSG = ['Genius', 'Magnificent', 'Impressive', 'Splendid', 'Great', 'Phew'];
+        toast(t(MSG[G.guesses.length - 1]), 1600);
+        for (let c = 0; c < LEN; c++) setTimeout(() => { tiles[r][c].classList.remove('flip'); tiles[r][c].classList.add('bounce'); }, c * 90);
+      } else if (lost) toast(G.answer.toUpperCase(), 2600);
+      if (won || lost) { record(won); setTimeout(() => showStats(true), won ? 1600 : 1500); }
+    }, LEN * 260 + 250);
+    if (!won && !lost) paintRow(r + 1, '', null);
+  }
+
+  // ============================================================ stats
+  function record(won) {
+    const s = stats[mode];
+    s.played++;
+    if (won) {
+      s.wins++; s.dist[G.guesses.length - 1]++;
+      s.streak = (mode === 'daily' && s.last !== G.day - 1) ? 1 : s.streak + 1;
+      s.max = Math.max(s.max, s.streak);
+      ach('wd_win');
+      if (G.guesses.length <= 3) ach('wd_fast');
+      if (mode === 'daily') { ach('wd_daily'); if (s.streak >= 3) ach('wd_streak'); }
+      if (G.hard) ach('wd_hard');
+    } else s.streak = 0;
+    if (mode === 'daily') s.last = won ? G.day : s.last;
+    save();
+  }
+  function emojiGrid() {
+    const E = { correct: '🟩', present: '🟨', absent: '⬛' };
+    return G.guesses.map(g => score(g, G.answer).map(s => E[s]).join('')).join('\n');
+  }
+  let tick = null;
+  function showStats(end) {
+    const s = stats[mode], done = G.status !== 'play';
+    $('sTitle').textContent = end && done ? (G.status === 'won' ? 'You got it!' : 'Out of guesses') : 'Statistics';
+    $('sMode').textContent = mode === 'daily' ? 'Daily' : 'Unlimited';
+    $('sAns').hidden = !(done && G.status === 'lost');
+    $('sWord').textContent = G.answer.toUpperCase();
+    $('stP').textContent = s.played; $('stW').textContent = s.played ? Math.round(s.wins / s.played * 100) : 0;
+    $('stS').textContent = s.streak; $('stM').textContent = s.max;
+    const dist = $('dist'); while (dist.children.length > 1) dist.lastChild.remove();
+    const mx = Math.max(1, ...s.dist);
+    s.dist.forEach((n, i) => {
+      const r = document.createElement('div'); r.className = 'dr';
+      const lab = document.createElement('span'); lab.textContent = i + 1;
+      const bar = document.createElement('i'); bar.textContent = n; bar.style.width = Math.max(8, n / mx * 100) + '%';
+      if (done && G.status === 'won' && G.guesses.length === i + 1) bar.classList.add('hit');
+      r.appendChild(lab); r.appendChild(bar); dist.appendChild(r);
+    });
+    $('shareBtn').hidden = !done;
+    $('next').hidden = !(done && mode === 'daily');
+    $('newBtn').hidden = !(done && mode === 'free');
+    $('mStat').classList.add('show');
+    clearInterval(tick);
+    if (done && mode === 'daily') { tickNext(); tick = setInterval(tickNext, 1000); }
+  }
+  function tickNext() {
+    const n = new Date(), nx = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1), ms = Math.max(0, nx - n);
+    const p = v => String(v).padStart(2, '0');
+    $('nextT').textContent = p(Math.floor(ms / 36e5)) + ':' + p(Math.floor(ms / 6e4) % 60) + ':' + p(Math.floor(ms / 1e3) % 60);
+    if (dayOverride == null && G.day !== dayIdx()) { closeModals(); loadGame(); render(); }
+  }
+  function closeModals() { document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show')); clearInterval(tick); }
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { closeModals(); lsSet('wd.seen', '1'); }));
+  document.querySelectorAll('.modal').forEach(m => m.addEventListener('pointerdown', e => { if (e.target === m) closeModals(); }));
+  $('helpBtn').addEventListener('click', () => { $('mHelp').classList.add('show'); });
+  $('statBtn').addEventListener('click', () => showStats(false));
+  $('newBtn').addEventListener('click', () => { closeModals(); G = newFree(); cur = ''; persist(); render(); });
+  $('shareBtn').addEventListener('click', async () => {
+    const head = mode === 'daily' ? 'Neon Word #' + (G.day - EPOCH + 1) : 'Neon Word (Unlimited)';
+    const txt = head + ' ' + (G.status === 'won' ? G.guesses.length : 'X') + '/' + MAXG + (G.hard ? '*' : '') + '\n\n' + emojiGrid() + '\n' + location.origin + location.pathname;
+    try { await navigator.clipboard.writeText(txt); toast(t('Copied to clipboard')); }
+    catch (e) { try { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast(t('Copied to clipboard')); } catch (e2) { toast(t('Could not copy')); } }
+  });
+
+  // ============================================================ mode + hard
+  document.querySelectorAll('.chip[data-m]').forEach(b => b.addEventListener('click', () => {
+    if (busy || b.dataset.m === mode) { b.blur(); return; }
+    mode = b.dataset.m; lsSet('wd.mode', mode); loadGame(); render(); b.blur();
+    if (G.status !== 'play') showStats(true);
+  }));
+  $('hardChip').addEventListener('click', e => {
+    if (G.guesses.length && G.status === 'play') { toast(t('Hard mode can only change before your first guess')); e.target.blur(); return; }
+    if (G.status !== 'play') { e.target.blur(); return; }
+    hard = !hard; lsSet('wd.hard', hard ? 'on' : 'off'); G.hard = hard; persist(); syncHard(); e.target.blur();
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && mode === 'daily' && dayOverride == null && G.day !== dayIdx()) { loadGame(); render(); } });
+
+  window.__wd = {
+    get G() { return G; }, get mode() { return mode; }, get cur() { return cur; }, get stats() { return stats; }, get busy() { return busy; },
+    score, hardCheck, dailyWord, dayIdx, ANSWERS, VALID, EPOCH,
+    setDay(n) { dayOverride = n; loadGame(); render(); }, setAnswer(w) { G.answer = w; persist(); render(); },
+    type(s) { for (const ch of s) handleKey(ch); }, submit() { handleKey('Enter'); }
+  };
+
+  loadGame(); render();
+  if (G.status !== 'play') setTimeout(() => showStats(true), 300);
+  else if (!lsGet('wd.seen')) $('mHelp').classList.add('show');
+})();
+</script>
+</body>
+</html>

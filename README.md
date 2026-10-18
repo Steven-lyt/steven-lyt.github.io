@@ -1,6 +1,6 @@
 # Neon Arcade 🎮
 
-A small browser arcade: eleven games in plain HTML, CSS and JavaScript. No frameworks, no build step.
+A small browser arcade: twelve games in plain HTML, CSS and JavaScript. No frameworks, no build step.
 
 **Play it here → https://steven-lyt.github.io/**
 
@@ -27,13 +27,14 @@ A small browser arcade: eleven games in plain HTML, CSS and JavaScript. No frame
 | ![Space Shooter](screenshots/shooter.jpg) | **Space Shooter** | Auto-fire vertical shooter. 4 enemy types, a boss every stage, 4 weapon levels, shields and bombs. |
 | ![Minesweeper](screenshots/mines.jpg) | **Minesweeper** | Three board sizes, a safe first click, flags, chording, and best times. Long-press to flag on touch. |
 | ![Neon Maze](screenshots/maze.jpg) | **Neon Maze** | Eat every pellet while four hunters chase you. Power cells stun them. A new random maze every stage, and swipe controls on touch. |
+| ![Neon Word](screenshots/wordle.jpg) | **Neon Word** | Guess the hidden five-letter word in six tries. A new daily word for everyone plus an unlimited mode, hard mode, stats, and an emoji share card. |
 
 ### Features
 
 - **Works on desktop and mobile.** Keyboard on a computer, on-screen buttons or swipes on a phone.
 - **English / 中文 switch** (top right of every page). The choice is saved.
 - **A menu that remembers you.** It shows the game you played last, filters games by type (Action, Puzzle, Strategy, Skill), has a random-game button, and shows your best scores and achievement progress. Each card plays a short gameplay clip when you hover over it.
-- **35 achievements** that unlock as you play, grouped by game on the menu page.
+- **40 achievements** that unlock as you play, grouped by game on the menu page.
 - **Best scores and progress are saved in your browser** (`localStorage`). Nothing is sent anywhere.
 - **Every game is one self-contained file.** Shared code (language and achievements) lives in `shared.js`.
 
@@ -42,7 +43,7 @@ A small browser arcade: eleven games in plain HTML, CSS and JavaScript. No frame
 ```
 index.html      menu: last played, filters, best scores, achievements
 shared.js       language switch + achievements
-snake.html  tetris.html  runner.html  reaction.html  2048.html  volt.html  breakout.html  towerdefense.html  shooter.html  mines.html  maze.html
+snake.html  tetris.html  runner.html  reaction.html  2048.html  volt.html  breakout.html  towerdefense.html  shooter.html  mines.html  maze.html  wordle.html  words.js
 thumbs/         game thumbnails used on the menu
 clips/          short gameplay previews (webm + mp4)
 screenshots/    images used in this README
@@ -67,7 +68,7 @@ You can also just open `index.html` in a browser.
 
 ## 繁體中文
 
-這是一個放在瀏覽器裡的小型遊戲廳，共 11 個遊戲，只用 HTML、CSS 和 JavaScript 寫成，不需要任何框架或建置步驟。
+這是一個放在瀏覽器裡的小型遊戲廳，共 12 個遊戲，只用 HTML、CSS 和 JavaScript 寫成，不需要任何框架或建置步驟。
 
 **線上遊玩 → https://steven-lyt.github.io/**
 
@@ -86,13 +87,14 @@ You can also just open `index.html` in a browser.
 | **太空射擊** | 自動射擊的直向射擊遊戲。4 種敵人、每關一隻首領、4 級武器、護盾和炸彈。 |
 | **踩地雷** | 三種大小、第一步保證安全，可插旗、快速開格，並記錄最佳時間。觸控長按可插旗。 |
 | **霓虹迷宮** | 吃光迷宮裡所有光點，同時躲開四隻追你的獵手。能量電池可以電暈他們。每一關都是新的隨機迷宮，觸控可用滑動操作。 |
+| **霓虹猜字** | 在六次內猜出隱藏的五字母英文單字。每日挑戰（全世界同一天同一個字）加無限模式、困難模式、統計，還能複製表情符號結果分享。 |
 
 ### 特色
 
 - 電腦用鍵盤，手機用螢幕按鈕或滑動。
 - 每個頁面右上角可以切換 **English / 中文**，選擇會被記住。
 - **會記住你的選單**：顯示上次玩的遊戲、依類型篩選（動作、益智、策略、技巧）、隨機選一款，並顯示最高分與成就進度；滑鼠移到卡片上會播放遊戲短片。
-- **35 個成就**，在選單頁依遊戲分組顯示。
+- **40 個成就**，在選單頁依遊戲分組顯示。
 - 最高分和進度都存在你的瀏覽器（`localStorage`），不會傳送到任何地方。
 
 ### 製作

@@ -123,8 +123,38 @@
     'Deep Maze': '深入迷宮', 'Reach stage 5 in Neon Maze.': '在霓虹迷宮到達第 5 關。',
     'Pellet Hoarder': '光點大胃王', 'Score 10000 in Neon Maze.': '在霓虹迷宮拿到 10000 分。',
 
+    // neon word
+    'Neon Word': '霓虹猜字', 'NEON WORD': '霓虹猜字',
+    'Guess the hidden five-letter English word in six tries. A new word every day, or play unlimited.': '在六次內猜出隱藏的五字母英文單字。每天一個新單字，也可以無限玩。',
+    'Guess the five-letter word in six tries.': '六次內猜出這個五字母單字。',
+    'Daily': '每日挑戰', 'Unlimited': '無限模式', 'Statistics': '統計', 'How to play': '玩法',
+    'Guess the hidden five-letter English word in six tries.': '在六次內猜出隱藏的五字母英文單字。',
+    'Each guess must be a real word. After each guess, the tiles change colour:': '每次猜測都必須是真的單字。送出後，方塊會變色：',
+    'Green': '綠色', 'Yellow': '黃色', 'Grey': '灰色',
+    ': right letter, right spot.': '：字母和位置都對。',
+    ': the letter is in the word, but in another spot.': '：單字裡有這個字母，但位置不同。',
+    ': the letter is not in the word.': '：單字裡沒有這個字母。',
+    ': one new word every day, the same for everyone.': '：每天一個新單字，所有人都一樣。',
+    ': play as many words as you like.': '：想玩幾題就玩幾題。',
+    ': every hint you find must be used in your next guess.': '：找到的每個提示，下一次猜測都必須用上。',
+    'Hard mode': '困難模式', 'streak': '連勝',
+    'ENTER': '送出', 'Delete': '刪除',
+    'Not enough letters': '字母不夠', 'Not in word list': '不在字庫裡',
+    'Hard mode: use the revealed hints': '困難模式：必須用上已揭曉的提示',
+    'Hard mode can only change before your first guess': '困難模式只能在第一次猜之前切換',
+    'Genius': '天才', 'Magnificent': '太厲害了', 'Impressive': '好厲害', 'Splendid': '漂亮', 'Great': '不錯', 'Phew': '好險',
+    'You got it!': '猜對了！', 'Out of guesses': '次數用完了', 'The word was': '答案是',
+    'Played': '場數', 'Win %': '勝率', 'Streak': '連勝', 'Best streak': '最長連勝', 'Guess distribution': '猜測次數分布',
+    'Next word in': '下個單字還有', 'Share': '分享', 'New word': '換一個單字',
+    'Copied to clipboard': '已複製到剪貼簿', 'Could not copy': '無法複製',
+    'Word Found': '找到了', 'Solve a word in Neon Word.': '在霓虹猜字猜出一個單字。',
+    'Sharp Mind': '腦筋靈光', 'Solve a word in 3 guesses or fewer.': '在 3 次內猜出一個單字。',
+    'Daily Solver': '每日解題者', 'Solve the daily word.': '猜出每日單字。',
+    'Three in a Row': '連三天', 'Solve the daily word 3 days in a row.': '連續 3 天猜出每日單字。',
+    'No Shortcuts': '不走捷徑', 'Solve a word in Hard mode.': '在困難模式猜出一個單字。',
+
     // achievements
-    'Arcade Regular': '街機常客', 'Play all eleven games.': '每個遊戲都玩過一次。',
+    'Arcade Regular': '街機常客', 'Play all twelve games.': '每個遊戲都玩過一次。',
     'Hungry Snake': '飢餓小蛇', 'Score 10 in Snake.': '在貪吃蛇得到 10 分。',
     'Long Boy': '長長一條', 'Score 30 in Snake.': '在貪吃蛇得到 30 分。',
     'Four at Once': '一次四排', 'Clear 4 lines with one piece in Tetris.': '在俄羅斯方塊用一個方塊消除 4 行。',
@@ -204,9 +234,9 @@
 
   // patterns for text that contains numbers (matched against the trimmed text)
   const ON_OFF = { on: '開', off: '關' };
-  const OPT = { 'Wrap-around': '穿牆模式', 'Sound': '音效', 'Ghost': '幽靈方塊' };
+  const OPT = { 'Wrap-around': '穿牆模式', 'Sound': '音效', 'Ghost': '幽靈方塊', 'Hard mode': '困難模式' };
   const RULES = [
-    [/^(Wrap-around|Sound|Ghost): (On|Off|on|off)$/, m => OPT[m[1]] + '：' + ON_OFF[m[2].toLowerCase()]],
+    [/^(Wrap-around|Sound|Ghost|Hard mode): (On|Off|on|off)$/, m => OPT[m[1]] + '：' + ON_OFF[m[2].toLowerCase()]],
     [/^Best (\d+)$/, m => '最高分 ' + m[1]],
     [/^· Best (\d+)$/, m => '· 最高分 ' + m[1]],
     [/^Level (\d+) · Best (\d+)$/, m => '等級 ' + m[1] + ' · 最高分 ' + m[2]],
@@ -326,7 +356,7 @@
 
   // ---------------------------------------------------------------- achievements
   const ACH_LIST = [
-    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all eleven games.' },
+    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all twelve games.' },
     { id: 'snk_10',     icon: '🐍', name: 'Hungry Snake',       desc: 'Score 10 in Snake.' },
     { id: 'snk_30',     icon: '🐍', name: 'Long Boy',           desc: 'Score 30 in Snake.' },
     { id: 'tet_four',   icon: '🧱', name: 'Four at Once',       desc: 'Clear 4 lines with one piece in Tetris.' },
@@ -360,9 +390,14 @@
     { id: 'mz_clear',   icon: '🌀', name: 'Maze Cleared',       desc: 'Clear a maze in Neon Maze.' },
     { id: 'mz_chain',   icon: '🌀', name: 'Hunter Hunter',      desc: 'Catch all four hunters with one power cell.' },
     { id: 'mz_l5',      icon: '🌀', name: 'Deep Maze',          desc: 'Reach stage 5 in Neon Maze.' },
-    { id: 'mz_10k',     icon: '🌀', name: 'Pellet Hoarder',     desc: 'Score 10000 in Neon Maze.' }
+    { id: 'mz_10k',     icon: '🌀', name: 'Pellet Hoarder',     desc: 'Score 10000 in Neon Maze.' },
+    { id: 'wd_win',     icon: '🔤', name: 'Word Found',         desc: 'Solve a word in Neon Word.' },
+    { id: 'wd_fast',    icon: '🔤', name: 'Sharp Mind',         desc: 'Solve a word in 3 guesses or fewer.' },
+    { id: 'wd_daily',   icon: '🔤', name: 'Daily Solver',       desc: 'Solve the daily word.' },
+    { id: 'wd_streak',  icon: '🔤', name: 'Three in a Row',    desc: 'Solve the daily word 3 days in a row.' },
+    { id: 'wd_hard',    icon: '🔤', name: 'No Shortcuts',       desc: 'Solve a word in Hard mode.' }
   ];
-  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt', 'breakout', 'td', 'shooter', 'mines', 'maze'];
+  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt', 'breakout', 'td', 'shooter', 'mines', 'maze', 'wordle'];
 
   function readJSON(k, d) { try { const v = JSON.parse(lsGet(k)); return v && typeof v === 'object' ? v : d; } catch (e) { return d; } }
   let got = readJSON('arcade.ach', {});
