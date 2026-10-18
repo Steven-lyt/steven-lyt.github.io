@@ -23,6 +23,10 @@
     'Slide the tiles and merge matching numbers. Reach 2048, then keep going. Includes undo.': '滑動方塊，合併相同數字。合出 2048 後還能繼續。可以復原。',
     'A side-scrolling platformer. Stomp bugs, bump blocks, dodge spikes and reach the gate. 3 levels.': '橫向捲軸跳台遊戲。踩扁蟲子、頂方塊、閃開尖刺，抵達大門。共 3 關。',
     'Not played yet': '尚未遊玩',
+    'All': '全部', 'Action': '動作', 'Puzzle': '益智', 'Strategy': '策略', 'Skill': '技巧',
+    'Last played': '上次玩的', 'New': '新', 'Play': '開始', 'Play now': '立即開始', 'Random game': '隨機一款',
+    'games': '款遊戲', 'plays': '次遊玩', 'achievements': '成就', 'Arcade': '街機',
+    'Filter games': '篩選遊戲', 'Source on GitHub': 'GitHub 原始碼',
     'Play →': '開始 →',
     'MORE GAMES COMING SOON': '更多遊戲即將推出',
     'Play with a keyboard on desktop or touch on mobile': '電腦用鍵盤玩，手機用觸控玩',
@@ -385,6 +389,10 @@
     played(game) {
       const p = readJSON('arcade.played', {});
       if (!p[game]) { p[game] = 1; lsSet('arcade.played', JSON.stringify(p)); }
+      const pl = readJSON('arcade.plays', {});          // play count and last-played time, for the menu
+      const e = pl[game] || { n: 0, t: 0 };
+      e.n += 1; e.t = Date.now(); pl[game] = e;
+      lsSet('arcade.plays', JSON.stringify(pl));
       if (GAMES.every(g => p[g])) ACH.unlock('all_games');
     }
   };
