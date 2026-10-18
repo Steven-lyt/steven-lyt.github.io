@@ -1,4 +1,4 @@
-/* Shared by every page of Steven's Arcade.
+/* Shared by every page of Neon Arcade.
    - I18N: English / 繁體中文 switch (saved in localStorage, applies to the whole site)
    - ACH:  achievements (saved in localStorage, shown on the menu page)
    Games stay playable if this file fails to load: they guard every call. */

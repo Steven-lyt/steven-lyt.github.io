@@ -1,4 +1,4 @@
-# Steven's Arcade 🎮
+# Neon Arcade 🎮
 
 A small browser arcade: ten games in plain HTML, CSS and JavaScript. No frameworks, no build step.
 
@@ -66,7 +66,7 @@ You can also just open `index.html` in a browser.
 
 ## 繁體中文
 
-這是一個放在瀏覽器裡的小型遊戲廳，共 6 個遊戲，只用 HTML、CSS 和 JavaScript 寫成，不需要任何框架或建置步驟。
+這是一個放在瀏覽器裡的小型遊戲廳，共 10 個遊戲，只用 HTML、CSS 和 JavaScript 寫成，不需要任何框架或建置步驟。
 
 **線上遊玩 → https://steven-lyt.github.io/**
 
