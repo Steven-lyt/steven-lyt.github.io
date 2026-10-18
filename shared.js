@@ -109,7 +109,7 @@
     'Stage 1': '第 1 關', 'Stage 2': '第 2 關', 'Stage 3': '第 3 關',
 
     // achievements
-    'Arcade Regular': '街機常客', 'Play all eight games.': '每個遊戲都玩過一次。',
+    'Arcade Regular': '街機常客', 'Play all nine games.': '每個遊戲都玩過一次。',
     'Hungry Snake': '飢餓小蛇', 'Score 10 in Snake.': '在貪吃蛇得到 10 分。',
     'Long Boy': '長長一條', 'Score 30 in Snake.': '在貪吃蛇得到 30 分。',
     'Four at Once': '一次四排', 'Clear 4 lines with one piece in Tetris.': '在俄羅斯方塊用一個方塊消除 4 行。',
@@ -132,6 +132,18 @@
     'Fortress': '堅不可摧', 'Survive all 20 waves in Tower Defense.': '在塔防撐過全部 20 波。',
     'Fully Upgraded': '滿級防禦', 'Upgrade a tower to level 3.': '把一座塔升到 3 級。',
     'Boss Slayer': '首領終結者', 'Defeat a boss in Tower Defense.': '在塔防擊敗一隻首領。',
+    'Ace Pilot': '王牌飛行員', 'Score 5000 in Space Shooter.': '在太空射擊得到 5000 分。',
+    'Top Gun': '空戰之王', 'Score 20000 in Space Shooter.': '在太空射擊得到 20000 分。',
+    'Boss Down': '首領倒下', 'Defeat a boss in Space Shooter.': '在太空射擊擊敗一隻首領。',
+    'Fully Armed': '火力全開', 'Reach weapon level 4 in Space Shooter.': '在太空射擊把武器升到 4 級。',
+
+    // space shooter
+    'Space Shooter': '太空射擊', 'NEON SHOOTER': '霓虹太空射擊',
+    'Blast through waves of aliens with auto-fire. Power up your weapon, dodge bullets and bomb the bosses.': '自動射擊，擊退一波波外星人。升級武器、閃避子彈，用炸彈對付首領。',
+    'Shoot down the alien fleet. Catch power-ups and bomb the bosses.': '擊落外星艦隊。接住道具，用炸彈對付首領。',
+    'BOMBS': '炸彈', 'Bomb': '炸彈', 'WEAPON UP': '火力提升', 'SHIELD': '護盾', 'BOMB': '炸彈',
+    'Stage {0}': '第 {0} 關', 'WARNING: BOSS': '警告：首領接近',
+    'Auto-fire': '自動射擊', 'bomb': '炸彈',
 
     // tower defense
     'Tower Defense': '塔防', 'NEON DEFENSE': '霓虹塔防',
@@ -170,6 +182,7 @@
     [/^· Best (\d+)$/, m => '· 最高分 ' + m[1]],
     [/^Level (\d+) · Best (\d+)$/, m => '等級 ' + m[1] + ' · 最高分 ' + m[2]],
     [/^Reached wave (\d+)$/, m => '到達第 ' + m[1] + ' 波'],
+    [/^Reached stage (\d+)$/, m => '到達第 ' + m[1] + ' 關'],
     [/^Level (\d+)$/, m => '等級 ' + m[1]],
     [/^Lines (\d+) · Level (\d+)$/, m => '行數 ' + m[1] + ' · 等級 ' + m[2]],
     [/^(.+?) (\d+)x combo$/, m => tr(m[1]) + ' ' + m[2] + 'x 連擊'],
@@ -284,7 +297,7 @@
 
   // ---------------------------------------------------------------- achievements
   const ACH_LIST = [
-    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all eight games.' },
+    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all nine games.' },
     { id: 'snk_10',     icon: '🐍', name: 'Hungry Snake',       desc: 'Score 10 in Snake.' },
     { id: 'snk_30',     icon: '🐍', name: 'Long Boy',           desc: 'Score 30 in Snake.' },
     { id: 'tet_four',   icon: '🧱', name: 'Four at Once',       desc: 'Clear 4 lines with one piece in Tetris.' },
@@ -306,9 +319,13 @@
     { id: 'td_w10',     icon: '🏰', name: 'Holding the Line',   desc: 'Reach wave 10 in Tower Defense.' },
     { id: 'td_win',     icon: '🏰', name: 'Fortress',           desc: 'Survive all 20 waves in Tower Defense.' },
     { id: 'td_max',     icon: '🏰', name: 'Fully Upgraded',     desc: 'Upgrade a tower to level 3.' },
-    { id: 'td_boss',    icon: '🏰', name: 'Boss Slayer',        desc: 'Defeat a boss in Tower Defense.' }
+    { id: 'td_boss',    icon: '🏰', name: 'Boss Slayer',        desc: 'Defeat a boss in Tower Defense.' },
+    { id: 'sp_5k',      icon: '🚀', name: 'Ace Pilot',          desc: 'Score 5000 in Space Shooter.' },
+    { id: 'sp_20k',     icon: '🚀', name: 'Top Gun',            desc: 'Score 20000 in Space Shooter.' },
+    { id: 'sp_boss',    icon: '🚀', name: 'Boss Down',          desc: 'Defeat a boss in Space Shooter.' },
+    { id: 'sp_max',     icon: '🚀', name: 'Fully Armed',        desc: 'Reach weapon level 4 in Space Shooter.' }
   ];
-  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt', 'breakout', 'td'];
+  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt', 'breakout', 'td', 'shooter'];
 
   function readJSON(k, d) { try { const v = JSON.parse(lsGet(k)); return v && typeof v === 'object' ? v : d; } catch (e) { return d; } }
   let got = readJSON('arcade.ach', {});
