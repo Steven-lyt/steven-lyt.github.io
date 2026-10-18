@@ -80,6 +80,8 @@
   .card.tetris { --glow: rgba(179, 107, 255, .3); --edge: #b36bff; }
   .card.runner { --glow: rgba(255, 154, 60, .3); --edge: #ff9a3c; }
   .card.f1 { --glow: rgba(255, 42, 61, .32); --edge: #ff3b4e; }
+  .card.n2048 { --glow: rgba(255, 210, 63, .28); --edge: #ffd23f; }
+  .card.volt { --glow: rgba(91, 140, 255, .32); --edge: #5b8cff; }
   .icon {
     width: 64px; height: 64px;
     display: grid; place-items: center;
@@ -155,6 +157,26 @@
       </div>
     </a>
 
+    <a class="card n2048" href="2048.html">
+      <div class="icon">🔢</div>
+      <h2>2048</h2>
+      <p>Slide the tiles and merge matching numbers. Reach 2048, then keep going. Includes undo.</p>
+      <div class="meta">
+        <span class="best" id="best2048">Not played yet</span>
+        <span class="go">Play →</span>
+      </div>
+    </a>
+
+    <a class="card volt" href="volt.html">
+      <div class="icon">⚡</div>
+      <h2>Volt Dash</h2>
+      <p>A side-scrolling platformer. Stomp bugs, bump blocks, dodge spikes and reach the gate. 3 levels.</p>
+      <div class="meta">
+        <span class="best" id="bestVolt">Not played yet</span>
+        <span class="go">Play →</span>
+      </div>
+    </a>
+
     <div class="soon">MORE GAMES COMING SOON</div>
   </div>
 
@@ -180,6 +202,8 @@
   show('bestSnake', 'snk.bests');
   show('bestTetris', 'tet.bests');
   show('bestRunner', 'run.best');
+  show('best2048', 'g2048.best');
+  show('bestVolt', 'vd.best');
   (function () {
     try {
       const n = Number(JSON.parse(localStorage.getItem('rx.best') || '0'));
