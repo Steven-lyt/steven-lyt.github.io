@@ -112,8 +112,19 @@
     'CHECKPOINT': '檢查點', '1UP': '加一命',
     'Stage 1': '第 1 關', 'Stage 2': '第 2 關', 'Stage 3': '第 3 關',
 
+    // neon maze
+    'Neon Maze': '霓虹迷宮', 'NEON MAZE': '霓虹迷宮',
+    'Eat every pellet in a glowing maze while hunters chase you. Grab a power cell to stun them. A new maze every stage.': '在發光迷宮裡吃光所有光點，同時躲開追你的獵手。吃能量電池可以暫時電暈他們。每一關都是新的迷宮。',
+    'Eat every pellet and keep away from the hunters.': '吃光所有光點，躲開獵手。',
+    'Power cells stun the hunters so you can catch them.': '能量電池能電暈獵手，讓你抓住他們。',
+    'STAGE': '關卡', 'READY!': '準備！', 'or swipe': '或滑動手指',
+    'Maze Cleared': '走出迷宮', 'Clear a maze in Neon Maze.': '在霓虹迷宮通過一關。',
+    'Hunter Hunter': '獵人的獵人', 'Catch all four hunters with one power cell.': '用同一顆能量電池抓到全部四隻獵手。',
+    'Deep Maze': '深入迷宮', 'Reach stage 5 in Neon Maze.': '在霓虹迷宮到達第 5 關。',
+    'Pellet Hoarder': '光點大胃王', 'Score 10000 in Neon Maze.': '在霓虹迷宮拿到 10000 分。',
+
     // achievements
-    'Arcade Regular': '街機常客', 'Play all ten games.': '每個遊戲都玩過一次。',
+    'Arcade Regular': '街機常客', 'Play all eleven games.': '每個遊戲都玩過一次。',
     'Hungry Snake': '飢餓小蛇', 'Score 10 in Snake.': '在貪吃蛇得到 10 分。',
     'Long Boy': '長長一條', 'Score 30 in Snake.': '在貪吃蛇得到 30 分。',
     'Four at Once': '一次四排', 'Clear 4 lines with one piece in Tetris.': '在俄羅斯方塊用一個方塊消除 4 行。',
@@ -315,7 +326,7 @@
 
   // ---------------------------------------------------------------- achievements
   const ACH_LIST = [
-    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all ten games.' },
+    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all eleven games.' },
     { id: 'snk_10',     icon: '🐍', name: 'Hungry Snake',       desc: 'Score 10 in Snake.' },
     { id: 'snk_30',     icon: '🐍', name: 'Long Boy',           desc: 'Score 30 in Snake.' },
     { id: 'tet_four',   icon: '🧱', name: 'Four at Once',       desc: 'Clear 4 lines with one piece in Tetris.' },
@@ -345,9 +356,13 @@
     { id: 'ms_easy',    icon: '💣', name: 'Sweep Rookie',       desc: 'Win an Easy game of Minesweeper.' },
     { id: 'ms_med',     icon: '💣', name: 'Bomb Disposal',      desc: 'Win a Medium game of Minesweeper.' },
     { id: 'ms_hard',    icon: '💣', name: 'Mine Master',        desc: 'Win a Hard game of Minesweeper.' },
-    { id: 'ms_fast',    icon: '💣', name: 'Lightning Sweep',    desc: 'Win Easy in under 40 seconds.' }
+    { id: 'ms_fast',    icon: '💣', name: 'Lightning Sweep',    desc: 'Win Easy in under 40 seconds.' },
+    { id: 'mz_clear',   icon: '🌀', name: 'Maze Cleared',       desc: 'Clear a maze in Neon Maze.' },
+    { id: 'mz_chain',   icon: '🌀', name: 'Hunter Hunter',      desc: 'Catch all four hunters with one power cell.' },
+    { id: 'mz_l5',      icon: '🌀', name: 'Deep Maze',          desc: 'Reach stage 5 in Neon Maze.' },
+    { id: 'mz_10k',     icon: '🌀', name: 'Pellet Hoarder',     desc: 'Score 10000 in Neon Maze.' }
   ];
-  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt', 'breakout', 'td', 'shooter', 'mines'];
+  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt', 'breakout', 'td', 'shooter', 'mines', 'maze'];
 
   function readJSON(k, d) { try { const v = JSON.parse(lsGet(k)); return v && typeof v === 'object' ? v : d; } catch (e) { return d; } }
   let got = readJSON('arcade.ach', {});

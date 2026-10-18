@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neon Maze</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌀</text></svg>">
+<style>
+  :root {
+    --bg1: #0b1020; --bg2: #1a1038;
+    --panel: rgba(255, 255, 255, .06); --border: rgba(255, 255, 255, .12);
+    --text: #e8ecff; --muted: #8e97c0; --accent: #46f0b4; --accent2: #5b8cff;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    display: flex; align-items: center; justify-content: center;
+    background:
+      radial-gradient(1200px 700px at 15% -10%, #25306b 0%, transparent 60%),
+      radial-gradient(900px 600px at 100% 110%, #4a1d6b 0%, transparent 55%),
+      linear-gradient(160deg, var(--bg1), var(--bg2));
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+  .app { width: min(94vw, 560px); padding: 42px 0 18px; }
+  header { position: relative; text-align: center; margin-bottom: 10px; }
+  h1 {
+    margin: 0; font-size: clamp(1.6rem, 6.5vw, 2.3rem); font-weight: 800; letter-spacing: .1em;
+    background: linear-gradient(90deg, #5b8cff, #46f0b4, #ff7ab0);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: .72rem; letter-spacing: .24em; }
+  .stats { display: flex; gap: 8px; margin-bottom: 10px; }
+  .stat { flex: 1; padding: 6px 8px; border-radius: 14px; border: 1px solid var(--border); background: var(--panel); text-align: center; }
+  .stat small { display: block; color: var(--muted); font-size: .6rem; letter-spacing: .16em; }
+  .stat b { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+  .stat b.bump { animation: bump .2s; }
+  @keyframes bump { 50% { transform: scale(1.15); color: #ffe45c; } }
+  .stat.lives b { color: #ff7ab0; letter-spacing: .05em; }
+
+  .stage {
+    position: relative;
+    width: min(100%, 540px, calc(100vh - 250px));
+    width: min(100%, 540px, calc(100dvh - 250px));
+    min-width: min(100%, 280px);
+    margin: 0 auto; aspect-ratio: 1 / 1;
+    border-radius: 18px; overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .5), 0 0 40px rgba(91, 140, 255, .14);
+    background: #070a18;
+  }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .pausebtn {
+    position: absolute; z-index: 3; top: 2px; right: 0; width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--border); background: rgba(255, 255, 255, .08);
+    color: var(--text); font-size: .85rem; cursor: pointer; display: grid; place-items: center;
+  }
+  .pausebtn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .overlay {
+    position: absolute; inset: 0; z-index: 4; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; padding: 14px; background: rgba(8, 12, 28, .8); backdrop-filter: blur(3px); text-align: center;
+  }
+  .overlay.show { display: flex; animation: fade .25s; }
+  @keyframes fade { from { opacity: 0; } }
+  .overlay h2 { margin: 0; font-size: clamp(1.5rem, 6vw, 2.2rem); letter-spacing: .06em; }
+  .overlay .big { font-size: 2.6rem; font-weight: 800; font-variant-numeric: tabular-nums; color: #ffe45c; line-height: 1; }
+  .overlay .sub { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.7; max-width: 340px; }
+  .overlay .sub:empty { display: none; }
+  .badge { padding: 3px 12px; border-radius: 999px; background: rgba(255, 228, 92, .15); border: 1px solid rgba(255, 228, 92, .5); color: #ffe45c; font-size: .8rem; }
+  .chip { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); font: inherit; font-size: .78rem; cursor: pointer; }
+  .chip.on { color: var(--accent); border-color: var(--accent); }
+  .btn {
+    padding: 11px 26px; border-radius: 14px; border: 0;
+    background: linear-gradient(135deg, #5b8cff, #46f0b4); color: #06141f;
+    font: inherit; font-weight: 800; font-size: .95rem; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(91, 140, 255, .3); transition: transform .12s, filter .12s;
+  }
+  .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .hint { margin-top: 10px; text-align: center; color: var(--muted); font-size: .76rem; line-height: 1.9; }
+  kbd { padding: 1px 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); font-family: inherit; font-size: .72rem; }
+  .back {
+    position: absolute; top: 8px; left: 10px; z-index: 5; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    font-size: .75rem; text-decoration: none; backdrop-filter: blur(6px);
+  }
+  .back:hover { color: var(--accent); border-color: var(--accent); }
+  [hidden] { display: none !important; }
+</style>
+<script src="shared.js"></script>
+</head>
+<body>
+<a class="back" href="./">← Menu</a>
+<div class="app">
+  <header>
+    <button class="pausebtn" id="pauseBtn" title="Pause">⏸</button>
+    <h1>NEON MAZE</h1>
+    <p>CLASSIC ARCADE</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><small>SCORE</small><b id="score">0</b></div>
+    <div class="stat"><small>BEST</small><b id="best">0</b></div>
+    <div class="stat lives"><small>LIVES</small><b id="lives">♥♥♥</b></div>
+    <div class="stat"><small>STAGE</small><b id="stageN">1</b></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="game"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="ovTitle">Neon Maze</h2>
+      <div class="big" id="ovScore" hidden>0</div>
+      <div class="badge" id="ovBadge" hidden>🏆 New record!</div>
+      <p class="sub" id="ovSub"></p>
+      <p class="sub" id="ovSub2"></p>
+      <div class="chips"><button class="chip" id="soundChip">Sound</button></div>
+      <button class="btn" id="ovBtn">Start Game</button>
+    </div>
+  </div>
+
+  <div class="hint">
+    <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> <span>or swipe</span> &emsp;<kbd>P</kbd> pause
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const t = window.I18N ? I18N.t : s => s;
+  const f = window.I18N ? I18N.f : (k, ...a) => a.reduce((s, v, i) => s.split('{' + i + '}').join(v), k);
+  const ach = id => { if (window.ACH) ACH.unlock(id); };
+  if (window.ACH) ACH.played('maze');
+
+  const $ = id => document.getElementById(id);
+  const cv = $('game'), ctx = cv.getContext('2d');
+  const overlay = $('overlay'), ovTitle = $('ovTitle'), ovScore = $('ovScore'), ovBadge = $('ovBadge'), ovSub = $('ovSub'), ovSub2 = $('ovSub2');
+  const ovBtn = $('ovBtn'), soundChip = $('soundChip');
+  const scoreEl = $('score'), bestEl = $('best'), livesEl = $('lives'), stageEl = $('stageN');
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rand = (a, b) => a + Math.random() * (b - a);
+
+  // ============================================================ constants
+  const CW = 19, CH = 19, T = 30, W = CW * T, H = CH * T;
+  const DIRS = [{ x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }, { x: 0, y: -1 }];   // 0 right, 1 down, 2 left, 3 up
+  const START = { x: 9, y: 17 }, DEN = { x: 9, y: 9 };
+  const PALETTE = ['#5b8cff', '#b36bff', '#46f0b4', '#ff7ab0', '#ffb36b'];
+  const HUNTERS = [
+    { k: 'chaser', col: '#ff4d6d', corner: [17, 1] },
+    { k: 'ambush', col: '#ff9a3c', corner: [1, 1] },
+    { k: 'flank',  col: '#3ee8ff', corner: [17, 17] },
+    { k: 'wander', col: '#c06bff', corner: [1, 17] }
+  ];
+
+  let soundOn = lsGet('mz.sound') !== 'off';
+  let best = Number(lsGet('mz.best')) || 0;
+  let actx = null;
+  const lastBeep = {};
+  function beep(f0, f1, dur, type, vol, key) {
+    if (!soundOn) return;
+    try {
+      const now = performance.now();
+      if (key && now - (lastBeep[key] || 0) < 45) return;
+      if (key) lastBeep[key] = now;
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume();
+      const t0 = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || 'triangle';
+      o.frequency.setValueAtTime(f0, t0);
+      o.frequency.exponentialRampToValueAtTime(Math.max(30, f1 || f0), t0 + dur);
+      g.gain.setValueAtTime(vol || 0.04, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t0); o.stop(t0 + dur + 0.02);
+    } catch (e) {}
+  }
+
+  // ============================================================ maze generation
+  function mulberry(a) {
+    return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let x = Math.imul(a ^ a >>> 15, 1 | a); x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x; return ((x ^ x >>> 14) >>> 0) / 4294967296; };
+  }
+  let g = [];          // g[y][x] = 1 wall, 0 floor
+  const wall = (x, y) => x < 0 || y < 0 || x >= CW || y >= CH || g[y][x] === 1;
+
+  function genMaze(seed) {
+    const rnd = mulberry(seed);
+    const m = Array.from({ length: CH }, () => new Array(CW).fill(1));
+    const HC = 5, RR = 9;                      // rooms in the left half (incl. the centre column) x rows
+    const seen = Array.from({ length: RR }, () => new Array(HC).fill(false));
+    const sc = Math.floor(rnd() * HC), sr = Math.floor(rnd() * RR);
+    const stack = [[sc, sr]]; seen[sr][sc] = true; m[2 * sr + 1][2 * sc + 1] = 0;
+    while (stack.length) {
+      const [c, r] = stack[stack.length - 1];
+      const nb = [];
+      for (const d of DIRS) { const nc = c + d.x, nr = r + d.y; if (nc >= 0 && nc < HC && nr >= 0 && nr < RR && !seen[nr][nc]) nb.push([nc, nr, d]); }
+      if (!nb.length) { stack.pop(); continue; }
+      const [nc, nr, d] = nb[Math.floor(rnd() * nb.length)];
+      seen[nr][nc] = true;
+      m[2 * r + 1 + d.y][2 * c + 1 + d.x] = 0; m[2 * nr + 1][2 * nc + 1] = 0;
+      stack.push([nc, nr]);
+    }
+    for (let y = 0; y < CH; y++) for (let x = 0; x <= 8; x++) m[y][CW - 1 - x] = m[y][x];
+    const open = (x, y) => { m[y][x] = 0; m[y][CW - 1 - x] = 0; };
+    const fl = (x, y) => x >= 0 && y >= 0 && x < CW && y < CH && m[y][x] === 0;
+    // remove dead ends (symmetrically) so there is always a way around
+    for (let y = 1; y < CH - 1; y += 2) for (let x = 1; x <= 9; x += 2) {
+      let n = 0; for (const d of DIRS) if (fl(x + d.x, y + d.y)) n++;
+      if (n !== 1) continue;
+      const cand = DIRS.filter(d => !fl(x + d.x, y + d.y) && fl(x + 2 * d.x, y + 2 * d.y));
+      if (cand.length) { const d = cand[Math.floor(rnd() * cand.length)]; open(x + d.x, y + d.y); }
+    }
+    // a few extra openings for loops
+    for (let y = 1; y < CH - 1; y++) for (let x = 1; x <= 9; x++) {
+      if (m[y][x] === 0 || (x + y) % 2 === 0) continue;
+      const horiz = y % 2 === 1;
+      const a = horiz ? fl(x - 1, y) && fl(x + 1, y) : fl(x, y - 1) && fl(x, y + 1);
+      if (a && rnd() < .13) open(x, y);
+    }
+    return m;
+  }
+
+  // ============================================================ state
+  let state = 'menu';                 // menu | ready | play | dying | clear | over
+  let paused = false;
+  let score = 0, lives = 3, stage = 1, newRecord = false, extraGiven = false;
+  let pel = [], pelLeft = 0, pelTotal = 0, pelEaten = 0;
+  let P = null, hunters = [], bonus = null, bonusSpawned = 0;
+  let parts = [], floats = [], banner = null;
+  let clock = 0, readyT = 0, deadT = 0, clearT = 0, started = false, sinceStart = 0;
+  let modeIdx = 0, modeT = 0, frT = 0, frTotal = 0, eatChain = 0, shake = 0;
+  let homeDist = [];
+  let kbHeld = -1;
+  let mazeCv = null, mazeKey = '';
+  let cfg = null;
+
+  function levelCfg(n) {
+    return {
+      pSpeed: 5.4,
+      hSpeed: Math.min(5.1, 4.1 + .17 * (n - 1)),
+      frSpeed: 2.6,
+      fright: Math.max(1.6, 7 - .9 * (n - 1)),
+      release: [0, 2.4, 4.8, 7.2].map(v => v * Math.max(.4, 1 - .12 * (n - 1))),
+      scatterK: n >= 3 ? .65 : 1
+    };
+  }
+  const MODES = [['scatter', 7], ['chase', 20], ['scatter', 7], ['chase', 20], ['scatter', 5], ['chase', 20], ['scatter', 5], ['chase', 1e9]];
+
+  function buildHomeDist() {
+    homeDist = Array.from({ length: CH }, () => new Array(CW).fill(999));
+    const q = [[DEN.x, DEN.y]]; homeDist[DEN.y][DEN.x] = 0;
+    for (let i = 0; i < q.length; i++) {
+      const [x, y] = q[i];
+      for (const d of DIRS) { const nx = x + d.x, ny = y + d.y; if (!wall(nx, ny) && homeDist[ny][nx] === 999) { homeDist[ny][nx] = homeDist[y][x] + 1; q.push([nx, ny]); } }
+    }
+  }
+
+  function setupStage(n, seed) {
+    stage = n; cfg = levelCfg(n);
+    g = genMaze(seed != null ? seed : (Math.random() * 1e9) | 0);
+    buildHomeDist();
+    pel = Array.from({ length: CH }, () => new Array(CW).fill(0));
+    pelTotal = 0;
+    for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) if (g[y][x] === 0) { pel[y][x] = 1; pelTotal++; }
+    pel[START.y][START.x] = 0; pel[DEN.y][DEN.x] = 0; pelTotal -= 2;
+    for (const [x, y] of [[1, 1], [17, 1], [1, 17], [17, 17]]) if (pel[y][x] === 1) pel[y][x] = 2;
+    pelLeft = pelTotal; pelEaten = 0; bonus = null; bonusSpawned = 0;
+    mazeKey = ''; buildMazeCanvas();
+    resetActors(true);
+    modeIdx = 0; modeT = 0; frT = 0; eatChain = 0;
+    banner = { text: f('Stage {0}', n), t: 0, col: PALETTE[(n - 1) % PALETTE.length] };
+    if (n >= 5) ach('mz_l5');
+  }
+  function resetActors() {
+    P = { x: START.x, y: START.y, dir: -1, next: -1, nextAge: 9, face: 3, anim: 0 };
+    hunters = HUNTERS.map((h, i) => ({ i, k: h.k, col: h.col, corner: h.corner, x: DEN.x, y: DEN.y, dir: -1, state: 'wait', rev: false, anim: Math.random() * 6 }));
+    started = false; sinceStart = 0; frT = 0; eatChain = 0;
+    state = 'ready'; readyT = 1.8;
+  }
+
+  function newGame() {
+    score = 0; lives = 3; newRecord = false; extraGiven = false;
+    parts = []; floats = []; shake = 0; paused = false;
+    setupStage(1);
+    hideOverlay(); updateHUD();
+  }
+
+  // ============================================================ HUD / overlay
+  const hudCache = {};
+  function setText(el, key, v) { if (hudCache[key] !== v) { hudCache[key] = v; el.textContent = v; } }
+  function updateHUD(bump) {
+    if (score > best) best = score;
+    if (bump && hudCache.score !== score) { scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump'); }
+    setText(scoreEl, 'score', score); setText(bestEl, 'best', best);
+    setText(livesEl, 'lives', lives > 0 ? '♥'.repeat(Math.min(lives, 6)) + (lives > 6 ? '+' : '') : '—');
+    setText(stageEl, 'stage', stage);
+  }
+  function syncChip() { soundChip.classList.toggle('on', soundOn); soundChip.textContent = 'Sound: ' + (soundOn ? 'On' : 'Off'); }
+  function showOverlay(mode) {
+    overlay.classList.add('show');
+    ovScore.hidden = true; ovBadge.hidden = true; soundChip.parentElement.hidden = false;
+    ovSub.textContent = ''; ovSub2.textContent = '';
+    if (mode === 'menu') {
+      ovTitle.textContent = 'Neon Maze';
+      ovSub.textContent = 'Eat every pellet and keep away from the hunters.';
+      ovSub2.textContent = 'Power cells stun the hunters so you can catch them.';
+      ovBtn.textContent = 'Start Game'; ovBtn.onclick = newGame;
+    } else if (mode === 'paused') {
+      ovTitle.textContent = 'Paused';
+      soundChip.parentElement.hidden = true;
+      ovBtn.textContent = 'Resume'; ovBtn.onclick = togglePause;
+    } else {
+      ovTitle.textContent = 'Game over';
+      ovScore.hidden = false; ovScore.textContent = score;
+      ovBadge.hidden = !newRecord;
+      ovSub.textContent = f('Reached stage {0}', stage);
+      ovSub2.textContent = 'Best ' + best;
+      soundChip.parentElement.hidden = true;
+      ovBtn.textContent = 'Play again'; ovBtn.onclick = newGame;
+    }
+    syncChip();
+  }
+  function hideOverlay() { overlay.classList.remove('show'); ovBtn.onclick = null; ovBtn.blur(); }
+  soundChip.addEventListener('click', () => { soundOn = !soundOn; lsSet('mz.sound', soundOn ? 'on' : 'off'); syncChip(); beep(660, 660, .08); soundChip.blur(); });
+  function togglePause() {
+    if (state === 'menu' || state === 'over') return;
+    paused = !paused;
+    if (paused) showOverlay('paused'); else hideOverlay();
+  }
+  $('pauseBtn').addEventListener('click', () => { togglePause(); $('pauseBtn').blur(); });
+
+  // ============================================================ effects
+  function burst(x, y, col, n, spd) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, s = (.3 + Math.random()) * (spd || 120);
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: .35 + Math.random() * .4, max: .75, col, size: 1.5 + Math.random() * 2.2 });
+    }
+  }
+  const floatText = (x, y, txt, col) => floats.push({ x, y, txt, col: col || '#fff', t: 0 });
+  const addScore = (n, x, y, col) => {
+    score += n;
+    if (!extraGiven && score >= 10000) { extraGiven = true; lives++; floatText(W / 2, H / 2 + 40, '1UP', '#46f0b4'); beep(500, 1000, .3, 'triangle', .06); }
+    if (score >= 10000) ach('mz_10k');
+    if (x != null) floatText(x, y, '+' + n, col);
+    updateHUD(true);
+  };
+
+  // ============================================================ movement
+  function onCenter(e) { return Math.abs(e.x - Math.round(e.x)) < 1e-5 && Math.abs(e.y - Math.round(e.y)) < 1e-5; }
+  function advance(e, dist, decide) {
+    for (let guard = 0; dist > 1e-9 && guard < 6; guard++) {
+      let rem;
+      if (onCenter(e)) {
+        e.x = Math.round(e.x); e.y = Math.round(e.y);
+        decide(e);
+        if (e.dir < 0) return;
+        const d = DIRS[e.dir];
+        if (wall(e.x + d.x, e.y + d.y)) { e.dir = -1; return; }
+        rem = 1;
+      } else {
+        if (e.dir < 0) return;
+        const d = DIRS[e.dir];
+        const nx = d.x > 0 ? Math.ceil(e.x - 1e-9) : d.x < 0 ? Math.floor(e.x + 1e-9) : e.x;
+        const ny = d.y > 0 ? Math.ceil(e.y - 1e-9) : d.y < 0 ? Math.floor(e.y + 1e-9) : e.y;
+        rem = Math.abs(nx - e.x) + Math.abs(ny - e.y);
+      }
+      const d = DIRS[e.dir], m = Math.min(dist, rem);
+      e.x += d.x * m; e.y += d.y * m; dist -= m;
+    }
+  }
+
+  function playerDecide(p) {
+    if (p.next >= 0 && p.nextAge < .6) {
+      const d = DIRS[p.next];
+      if (!wall(p.x + d.x, p.y + d.y)) { p.dir = p.next; return; }
+    }
+  }
+  function setNext(d) {
+    if (!P) return;
+    P.next = d; P.nextAge = 0;
+    if (state === 'ready' && readyT < 1.2 && !paused) { /* let the READY banner finish quickly */ }
+    if (!started && (state === 'play' || state === 'ready')) started = true;
+  }
+
+  const tileOf = e => [Math.round(e.x), Math.round(e.y)];
+  function hunterTarget(h) {
+    const mode = MODES[modeIdx][0];
+    if (mode === 'scatter') return h.corner;
+    const [px, py] = tileOf(P), fd = DIRS[P.dir >= 0 ? P.dir : P.face];
+    switch (h.k) {
+      case 'chaser': return [px, py];
+      case 'ambush': return [px + fd.x * 4, py + fd.y * 4];
+      case 'flank': { const c = hunters[0], tx = px + fd.x * 2, ty = py + fd.y * 2; return [tx * 2 - c.x, ty * 2 - c.y]; }
+      default: return Math.hypot(h.x - P.x, h.y - P.y) > 7 ? [px, py] : h.corner;
+    }
+  }
+  function hunterDecide(h) {
+    if (h.state === 'eaten' && Math.round(h.x) === DEN.x && Math.round(h.y) === DEN.y) h.state = frT > 0 ? 'fright' : 'active';
+    const back = h.dir >= 0 ? (h.dir + 2) % 4 : -1;
+    let opts = [];
+    for (const d of [3, 2, 1, 0]) if (d !== back && !wall(h.x + DIRS[d].x, h.y + DIRS[d].y)) opts.push(d);
+    if (h.rev && h.state !== 'eaten') {
+      h.rev = false;
+      if (back >= 0 && !wall(h.x + DIRS[back].x, h.y + DIRS[back].y)) { h.dir = back; return; }
+    }
+    if (!opts.length) opts = [back];
+    if (opts.length === 1) { h.dir = opts[0]; return; }
+    if (h.state === 'fright') { h.dir = opts[Math.floor(Math.random() * opts.length)]; return; }
+    if (h.state === 'eaten') {
+      let bd = opts[0], bv = 1e9;
+      for (const d of opts) { const v = homeDist[h.y + DIRS[d].y][h.x + DIRS[d].x]; if (v < bv) { bv = v; bd = d; } }
+      h.dir = bd; return;
+    }
+    const [tx, ty] = hunterTarget(h);
+    let bd = opts[0], bv = 1e9;
+    for (const d of opts) { const v = (h.x + DIRS[d].x - tx) ** 2 + (h.y + DIRS[d].y - ty) ** 2; if (v < bv) { bv = v; bd = d; } }
+    h.dir = bd;
+  }
+  const hunterSpeed = h => h.state === 'eaten' ? 9 : h.state === 'fright' ? cfg.frSpeed : cfg.hSpeed * (pelLeft < 20 ? 1.1 : 1);
+
+  // ============================================================ rules
+  function eatPellet() {
+    const [tx, ty] = tileOf(P);
+    if (Math.abs(P.x - tx) + Math.abs(P.y - ty) > .5) return;
+    const v = pel[ty][tx];
+    if (!v) return;
+    pel[ty][tx] = 0; pelLeft--; pelEaten++;
+    if (v === 1) { addScore(10); beep(pelEaten % 2 ? 380 : 460, pelEaten % 2 ? 380 : 460, .05, 'triangle', .025, 'pel'); }
+    else {
+      addScore(50, (tx + .5) * T, (ty + .5) * T, '#ffe45c');
+      beep(300, 900, .3, 'square', .04);
+      burst((tx + .5) * T, (ty + .5) * T, '#ffe45c', 18, 160);
+      frT = frTotal = cfg.fright; eatChain = 0;
+      for (const h of hunters) if (h.state === 'active') { h.state = 'fright'; h.rev = true; }
+    }
+    if (!bonusSpawned && pelEaten >= Math.floor(pelTotal * .33)) spawnBonus(1);
+    else if (bonusSpawned === 1 && pelEaten >= Math.floor(pelTotal * .66)) spawnBonus(2);
+    if (pelLeft <= 0) levelClear();
+  }
+  function spawnBonus(k) { bonusSpawned = k; bonus = { x: 9, y: 11, t: 10, val: Math.min(3000, 500 + 250 * (stage - 1)) }; }
+  function levelClear() {
+    state = 'clear'; clearT = 2; frT = 0;
+    ach('mz_clear'); beep(520, 1040, .5, 'triangle', .06);
+  }
+  function eatHunter(h) {
+    h.state = 'eaten'; eatChain++;
+    const v = 100 * (2 ** eatChain);
+    addScore(v, h.x * T + T / 2, h.y * T + T / 2, h.col);
+    burst(h.x * T + T / 2, h.y * T + T / 2, h.col, 22, 190);
+    beep(400, 1200, .25, 'square', .05);
+    if (eatChain >= 4) ach('mz_chain');
+  }
+  function playerHit() {
+    state = 'dying'; deadT = 1.4; lives--; frT = 0;
+    burst(P.x * T + T / 2, P.y * T + T / 2, '#46f0b4', 30, 200);
+    beep(500, 60, .9, 'sawtooth', .06); shake = .2;
+    updateHUD();
+  }
+
+  function update(dt) {
+    if (paused || state === 'menu' || state === 'over') return;
+    clock += dt;
+    for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= .97; p.vy *= .97; p.life -= dt; }
+    parts = parts.filter(p => p.life > 0);
+    for (const q of floats) q.t += dt;
+    floats = floats.filter(q => q.t < 1.1);
+    if (banner) { banner.t += dt; if (banner.t > 2) banner = null; }
+    if (shake > 0) shake = Math.max(0, shake - dt);
+    P.nextAge += dt;
+    if (kbHeld >= 0) P.nextAge = 0;
+
+    if (state === 'ready') {
+      readyT -= dt;
+      if (readyT <= 0) state = 'play';
+      return;
+    }
+    if (state === 'dying') {
+      deadT -= dt;
+      if (deadT <= 0) {
+        if (lives <= 0) {
+          state = 'over'; newRecord = score > 0 && score >= best && score > (Number(lsGet('mz.best')) || 0);
+          lsSet('mz.best', String(Math.max(best, Number(lsGet('mz.best')) || 0)));
+          showOverlay('over');
+        } else resetActors();
+      }
+      return;
+    }
+    if (state === 'clear') {
+      clearT -= dt;
+      if (clearT <= 0) { setupStage(stage + 1); updateHUD(); }
+      return;
+    }
+
+    // ---- play
+    P.anim += dt;
+    if (P.next >= 0 && P.dir >= 0 && P.nextAge < .6 && P.next === (P.dir + 2) % 4) P.dir = P.next;
+    advance(P, cfg.pSpeed * dt, playerDecide);
+    if (P.dir >= 0) P.face = P.dir;
+    eatPellet();
+    if (state !== 'play') return;
+
+    if (started) {
+      sinceStart += dt;
+      if (frT > 0) { frT -= dt; if (frT <= 0) { frT = 0; for (const h of hunters) if (h.state === 'fright') h.state = 'active'; } }
+      else {
+        modeT += dt;
+        const [mode, dur] = MODES[modeIdx];
+        if (modeT >= dur * (mode === 'scatter' ? cfg.scatterK : 1)) { modeIdx++; modeT = 0; for (const h of hunters) if (h.state === 'active') h.rev = true; }
+      }
+      for (const h of hunters) if (h.state === 'wait' && sinceStart >= cfg.release[h.i]) { h.state = frT > 0 ? 'fright' : 'active'; h.dir = -1; }
+    }
+    for (const h of hunters) {
+      h.anim += dt;
+      if (h.state === 'wait') continue;
+      advance(h, hunterSpeed(h) * dt, hunterDecide);
+      if (h.dir < 0) { h.dir = -1; }
+    }
+    for (const h of hunters) {
+      if (h.state === 'wait' || h.state === 'eaten') continue;
+      if (Math.hypot(h.x - P.x, h.y - P.y) < .6) {
+        if (h.state === 'fright') eatHunter(h);
+        else { playerHit(); return; }
+      }
+    }
+    if (bonus) {
+      bonus.t -= dt;
+      if (bonus.t <= 0) bonus = null;
+      else if (Math.hypot(bonus.x - P.x, bonus.y - P.y) < .55) {
+        addScore(bonus.val, (bonus.x + .5) * T, (bonus.y + .5) * T, '#ffe45c'); beep(700, 1400, .2, 'triangle', .05); bonus = null;
+      }
+    }
+  }
+
+  // ============================================================ input
+  let scale = 1;
+  function resize() {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr));
+    scale = cv.width / W;
+  }
+  window.addEventListener('resize', resize);
+  if (window.ResizeObserver) new ResizeObserver(resize).observe($('stage'));
+
+  const KEYDIR = { ArrowRight: 0, d: 0, D: 0, ArrowDown: 1, s: 1, S: 1, ArrowLeft: 2, a: 2, A: 2, ArrowUp: 3, w: 3, W: 3 };
+  window.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key in KEYDIR) {
+      e.preventDefault();
+      if (state === 'menu' || state === 'over') return;
+      kbHeld = KEYDIR[e.key]; setNext(kbHeld);
+    } else if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+      togglePause();
+    } else if ((e.key === ' ' || e.key === 'Enter') && overlay.classList.contains('show') && ovBtn.onclick && document.activeElement !== ovBtn) {
+      e.preventDefault(); ovBtn.onclick();
+    }
+  });
+  window.addEventListener('keyup', e => { if (e.key in KEYDIR && KEYDIR[e.key] === kbHeld) kbHeld = -1; });
+  let drag = null;
+  cv.addEventListener('pointerdown', e => { drag = { id: e.pointerId, x: e.clientX, y: e.clientY }; try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
+  cv.addEventListener('pointermove', e => {
+    if (!drag || drag.id !== e.pointerId || paused || state === 'menu' || state === 'over') return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 16) return;
+    setNext(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 0 : 2) : (dy > 0 ? 1 : 3));
+    drag.x = e.clientX; drag.y = e.clientY;
+  });
+  const endDrag = e => { if (drag && drag.id === e.pointerId) drag = null; };
+  cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+  window.addEventListener('blur', () => { kbHeld = -1; if ((state === 'play' || state === 'ready') && !paused) togglePause(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && (state === 'play' || state === 'ready') && !paused) togglePause(); });
+
+  // ============================================================ render
+  function wallColor() { return PALETTE[(stage - 1) % PALETTE.length]; }
+  function buildMazeCanvas() {
+    const key = wallColor() + g.map(r => r.join('')).join('');
+    if (key === mazeKey) return;
+    mazeKey = key;
+    mazeCv = mazeCv || document.createElement('canvas');
+    const k = 2; mazeCv.width = W * k; mazeCv.height = H * k;
+    const c = mazeCv.getContext('2d'); c.setTransform(k, 0, 0, k, 0, 0);
+    c.clearRect(0, 0, W, H);
+    c.fillStyle = '#0c1230';
+    for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) if (g[y][x] === 1) c.fillRect(x * T, y * T, T, T);
+    const col = wallColor();
+    const seg = (x0, y0, x1, y1) => { c.moveTo(x0, y0); c.lineTo(x1, y1); };
+    c.beginPath();
+    for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) {
+      if (g[y][x] !== 1) continue;
+      const X = x * T, Y = y * T;
+      if (y > 0 && g[y - 1][x] === 0) seg(X, Y, X + T, Y);
+      if (y < CH - 1 && g[y + 1][x] === 0) seg(X, Y + T, X + T, Y + T);
+      if (x > 0 && g[y][x - 1] === 0) seg(X, Y, X, Y + T);
+      if (x < CW - 1 && g[y][x + 1] === 0) seg(X + T, Y, X + T, Y + T);
+    }
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    c.strokeStyle = col; c.shadowColor = col; c.shadowBlur = 12; c.globalAlpha = .55; c.lineWidth = 4; c.stroke();
+    c.shadowBlur = 0; c.globalAlpha = 1; c.lineWidth = 1.8; c.stroke();
+  }
+
+  function rr(c, x, y, w, h, r) {
+    c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+  }
+
+  function drawPlayer() {
+    const cx = P.x * T + T / 2, cy = P.y * T + T / 2;
+    let r = T * .37 * (1 + .05 * Math.sin(P.anim * 12));
+    if (state === 'dying') {
+      const k = clamp(1 - deadT / 1.4, 0, 1);
+      if (k > .75) return;
+      r *= 1 - k / .75;
+      ctx.strokeStyle = 'rgba(70,240,180,' + (1 - k) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, r + k * 40, 0, 7); ctx.stroke();
+    }
+    ctx.save();
+    ctx.shadowColor = '#46f0b4'; ctx.shadowBlur = 16;
+    const gr = ctx.createRadialGradient(cx - r * .3, cy - r * .35, r * .1, cx, cy, r);
+    gr.addColorStop(0, '#ffffff'); gr.addColorStop(.35, '#9bffe0'); gr.addColorStop(1, '#2fd9a0');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fill();
+    ctx.shadowBlur = 0;
+    const fd = DIRS[P.face], px = -fd.y, py = fd.x;
+    ctx.fillStyle = '#0a2030';
+    for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(cx + fd.x * r * .38 + px * s * r * .3, cy + fd.y * r * .38 + py * s * r * .3, r * .13, 0, 7); ctx.fill(); }
+    ctx.restore();
+  }
+
+  function drawHunter(h) {
+    const cx = h.x * T + T / 2, cy = h.y * T + T / 2 + (h.state === 'wait' ? Math.sin(clock * 4 + h.i) * 1.5 : 0);
+    const d = DIRS[h.dir >= 0 ? h.dir : 1];
+    const fr = h.state === 'fright', eaten = h.state === 'eaten';
+    const flash = fr && frT < 1.6 && Math.floor(clock * 6) % 2 === 0;
+    ctx.save();
+    if (h.state === 'wait') ctx.globalAlpha = .4;
+    if (!eaten) {
+      const w = T * .74, hh = T * .7, bob = Math.sin(h.anim * 8) * 1;
+      const col = fr ? (flash ? '#e8ecff' : '#3b4bff') : h.col;
+      ctx.shadowColor = col; ctx.shadowBlur = 14;
+      ctx.fillStyle = col; rr(ctx, cx - w / 2, cy - hh / 2 + bob, w, hh, T * .26); ctx.fill();
+      ctx.shadowBlur = 0;
+      // antenna
+      ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, cy - hh / 2 + bob); ctx.lineTo(cx, cy - hh / 2 - 4 + bob); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy - hh / 2 - 5 + bob, 2, 0, 7); ctx.fill();
+    }
+    // visor + eye
+    const vw = T * .56, vh = T * .22, vy = cy - T * .1;
+    if (!eaten) {
+      ctx.fillStyle = fr ? (flash ? '#3b4bff' : '#e8ecff') : '#0a0f24';
+      rr(ctx, cx - vw / 2, vy - vh / 2, vw, vh, vh / 2); ctx.fill();
+    }
+    ctx.fillStyle = fr ? (flash ? '#e8ecff' : '#3b4bff') : '#fff';
+    ctx.shadowColor = eaten ? '#fff' : (fr ? '#fff' : h.col); ctx.shadowBlur = eaten ? 12 : 6;
+    if (fr) { for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(cx + s * T * .12, vy, T * .045, 0, 7); ctx.fill(); } }
+    else { ctx.beginPath(); ctx.arc(cx + d.x * T * .14, vy + d.y * T * .03, eaten ? T * .09 : T * .075, 0, 7); ctx.fill(); }
+    ctx.shadowBlur = 0;
+    if (fr && !eaten) {
+      ctx.strokeStyle = flash ? '#3b4bff' : '#e8ecff'; ctx.lineWidth = 1.6; ctx.beginPath();
+      const my = cy + T * .17;
+      ctx.moveTo(cx - T * .2, my);
+      for (let i = 1; i <= 4; i++) ctx.lineTo(cx - T * .2 + i * T * .1, my + (i % 2 ? -3 : 0));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function render() {
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.fillStyle = '#070a18'; ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    if (shake > 0) ctx.translate(rand(-3, 3) * shake * 5, rand(-3, 3) * shake * 5);
+    if (mazeCv) {
+      if (state === 'clear' && Math.floor(clearT * 6) % 2 === 0) ctx.globalAlpha = .35;
+      ctx.drawImage(mazeCv, 0, 0, W, H); ctx.globalAlpha = 1;
+    }
+    if (state !== 'clear') {
+      // pellets
+      for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) {
+        const v = pel[y][x];
+        if (v === 1) { ctx.fillStyle = '#cfe3ff'; ctx.beginPath(); ctx.arc(x * T + T / 2, y * T + T / 2, 2.4, 0, 7); ctx.fill(); }
+        else if (v === 2) {
+          const pr = 6.5 + Math.sin(clock * 6) * 1.5;
+          ctx.save(); ctx.shadowColor = '#ffe45c'; ctx.shadowBlur = 14; ctx.fillStyle = '#ffe45c';
+          ctx.beginPath(); ctx.arc(x * T + T / 2, y * T + T / 2, pr, 0, 7); ctx.fill(); ctx.restore();
+        }
+      }
+      if (bonus) {
+        const bx = (bonus.x + .5) * T, by = (bonus.y + .5) * T, s = 8 + Math.sin(clock * 5);
+        ctx.save(); ctx.shadowColor = '#ff7ab0'; ctx.shadowBlur = 14; ctx.fillStyle = bonus.t < 3 && Math.floor(clock * 8) % 2 ? '#fff' : '#ff7ab0';
+        ctx.beginPath(); ctx.moveTo(bx, by - s); ctx.lineTo(bx + s * .8, by); ctx.lineTo(bx, by + s); ctx.lineTo(bx - s * .8, by); ctx.closePath(); ctx.fill(); ctx.restore();
+      }
+      if (P) {
+        for (const h of hunters) if (h.state === 'eaten') drawHunter(h);
+        drawPlayer();
+        for (const h of hunters) if (h.state !== 'eaten') drawHunter(h);
+      }
+    }
+    for (const p of parts) { ctx.globalAlpha = clamp(p.life / p.max, 0, 1); ctx.fillStyle = p.col; ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size); }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '800 14px system-ui, "Noto Sans TC", sans-serif';
+    for (const q of floats) { ctx.globalAlpha = clamp(1.1 - q.t, 0, 1); ctx.fillStyle = q.col; ctx.fillText(q.txt, q.x, q.y - q.t * 24); }
+    ctx.globalAlpha = 1;
+    if (state === 'ready') {
+      ctx.font = '800 22px system-ui, "Noto Sans TC", sans-serif'; ctx.fillStyle = '#ffe45c'; ctx.shadowColor = '#ffe45c'; ctx.shadowBlur = 12;
+      ctx.fillText(t('READY!'), W / 2, DEN.y * T + T / 2 + T * 1.4 + 0); ctx.shadowBlur = 0;
+    }
+    if (banner && state !== 'menu') {
+      const a = banner.t < .3 ? banner.t / .3 : banner.t > 1.6 ? Math.max(0, (2 - banner.t) / .4) : 1;
+      ctx.globalAlpha = a; ctx.font = '800 30px system-ui, "Noto Sans TC", sans-serif'; ctx.fillStyle = banner.col; ctx.shadowColor = banner.col; ctx.shadowBlur = 16;
+      ctx.fillText(banner.text, W / 2, H * .5 - T * 3.2); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  }
+
+  let last = 0, acc = 0;
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    if (!last) last = ts;
+    let dt = (ts - last) / 1000; last = ts;
+    if (dt > .1) dt = .1;
+    acc += dt;
+    while (acc >= 1 / 120) { update(1 / 120); acc -= 1 / 120; }
+    render();
+  }
+
+  window.__mz = {
+    get state() { return state; }, get score() { return score; }, get lives() { return lives; }, set lives(v) { lives = v; },
+    get stage() { return stage; }, get P() { return P; }, get hunters() { return hunters; }, get g() { return g; }, get pel() { return pel; },
+    get pelLeft() { return pelLeft; }, get frT() { return frT; }, get bonus() { return bonus; }, get cfg() { return cfg; }, get started() { return started; },
+    get mode() { return MODES[modeIdx][0]; }, W, H, CW, CH, DEN, START,
+    step(n) { for (let i = 0; i < n; i++) update(1 / 120); }, newGame, setNext, genMaze, wall,
+    setStage(n, seed) { setupStage(n, seed); updateHUD(); }, eatAllBut(k) { for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) if (pel[y][x] === 1 && pelLeft > k) { pel[y][x] = 0; pelLeft--; pelEaten++; } }
+  };
+
+  // idle backdrop for the menu
+  setupStage(1);
+  state = 'menu'; banner = null;
+  syncChip(); resize(); updateHUD();
+  showOverlay('menu');
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Neon Arcade</title>
-<meta name="description" content="A small browser arcade by Steven. Ten neon games in plain HTML, CSS and JavaScript: Snake, Tetris, 2048, Minesweeper, Tower Defense and more. No installs, no sign-ups.">
+<meta name="description" content="A small browser arcade by Steven. Eleven neon games in plain HTML, CSS and JavaScript: Snake, Tetris, 2048, Minesweeper, Tower Defense and more. No installs, no sign-ups.">
 <meta name="theme-color" content="#0b1020">
 <link rel="canonical" href="https://steven-lyt.github.io/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Neon Arcade">
-<meta property="og:description" content="Ten neon browser games. Pick one and play.">
+<meta property="og:description" content="Eleven neon browser games. Pick one and play.">
 <meta property="og:url" content="https://steven-lyt.github.io/">
 <meta property="og:image" content="https://steven-lyt.github.io/screenshots/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -269,7 +269,7 @@
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 
   // Keep this list in the order the cards should appear. `best` returns the label parts for the player's record.
-  const NEWEST = 'mines';
+  const NEWEST = 'maze';
   const num = key => () => {
     try {
       const o = JSON.parse(lsGet(key) || '{}');
@@ -305,7 +305,9 @@
         const o = json('ms.best', {});
         for (const [k, n] of [['hard', 'Hard'], ['medium', 'Medium'], ['easy', 'Easy']]) if (typeof o[k] === 'number' && o[k] > 0) return [n, o[k].toFixed(1) + 's'];
         return null;
-      } }
+      } },
+    { id: 'maze', href: 'maze.html', icon: '🌀', name: 'Neon Maze', cat: 'Action', c: '#ff7ab0',
+      desc: 'Eat every pellet in a glowing maze while hunters chase you. Grab a power cell to stun them. A new maze every stage.', best: num('mz.best') }
   ];
   const CATS = ['All', 'Action', 'Puzzle', 'Strategy', 'Skill'];
   const plays = json('arcade.plays', {});
@@ -325,7 +327,7 @@
   const clipOf = g => 'clips/' + (g.thumb || g.id);
 
   // Achievement id prefix -> game (or a label pair for the arcade-wide group).
-  const PREFIX = { all: ['🕹️', 'Arcade'], snk: 'snake', tet: 'tetris', run: 'runner', rx: 'reaction', g: '2048', vd: 'volt', bo: 'breakout', td: 'td', sp: 'shooter', ms: 'mines' };
+  const PREFIX = { all: ['🕹️', 'Arcade'], snk: 'snake', tet: 'tetris', run: 'runner', rx: 'reaction', g: '2048', vd: 'volt', bo: 'breakout', td: 'td', sp: 'shooter', ms: 'mines', mz: 'maze' };
   const trophies = {};
   if (window.ACH) for (const a of ACH.list()) {
     const k = a.id.split('_')[0];
