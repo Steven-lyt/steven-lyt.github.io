@@ -194,6 +194,7 @@
     .btn { padding: 8px 22px; font-size: .9rem; }
   }
 </style>
+<script src="shared.js"></script>
 </head>
 <body>
 <a class="back" href="./">← Menu</a>
@@ -239,6 +240,11 @@
 
 <script>
 (() => {
+  const t = window.I18N ? I18N.t : s => s;
+  const f = window.I18N ? I18N.f : (k, ...a) => a.reduce((s, v, i) => s.split('{' + i + '}').join(v), k);
+  const ach = id => { if (window.ACH) ACH.unlock(id); };
+  if (window.ACH) ACH.played('runner');
+
   // ---------- Setup ----------
   const W = 640, H = 320, GROUND = 262;
   const TAU = Math.PI * 2;
@@ -460,6 +466,8 @@
     if (ns !== score) {
       const prev = score;
       score = ns;
+      if (score >= 500) ach('run_500');
+      if (score >= 1500) ach('run_1500');
       if (Math.floor(score / 100) > Math.floor(prev / 100)) {
         scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump');
         beep(880, .08, 'square', .04);

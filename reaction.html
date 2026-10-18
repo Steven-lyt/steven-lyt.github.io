@@ -225,6 +225,7 @@
     font-size: .72rem;
   }
 </style>
+<script src="shared.js"></script>
 </head>
 <body>
 <a class="back" href="./">← Menu</a>
@@ -277,6 +278,11 @@
 
 <script>
 (() => {
+  const t = window.I18N ? I18N.t : s => s;
+  const f = window.I18N ? I18N.f : (k, ...a) => a.reduce((s, v, i) => s.split('{' + i + '}').join(v), k);
+  const ach = id => { if (window.ACH) ACH.unlock(id); };
+  if (window.ACH) ACH.played('reaction');
+
   // ---------- Setup ----------
   const SEQ = 900;                          // ms between each red light
   const HOLD_MIN = 200, HOLD_MAX = 3200;    // random wait after all five lights are on
@@ -351,7 +357,7 @@
     if (ms <= 200) return { text: 'F1 DRIVER LEVEL', color: '#46f0b4' };
     if (ms <= 250) return { text: 'EXCELLENT', color: '#3ee8ff' };
     if (ms <= 300) return { text: 'GOOD', color: '#5b8cff' };
-    if (ms <= 400) return { text: 'AVERAGE', color: '#ff9a3c' };
+    if (ms <= 400) return { text: 'DECENT', color: '#ff9a3c' };
     return { text: 'KEEP PRACTICING', color: '#ff5d7a' };
   }
 
@@ -406,9 +412,11 @@
     bigEl.textContent = fmtSec(ms);
     ratingEl.textContent = r.text;
     ratingEl.style.color = r.color;
-    detailEl.textContent = (isBest && prevBest ? 'NEW BEST! ' : isBest ? 'First time on the board! ' : '')
-      + (isBest ? '' : ms === best ? 'Ties your best. ' : '+' + fmtSec(ms - best) + ' vs your best. ')
-      + 'Lights out after ' + fmtHold(hold) + '.';
+    detailEl.textContent = (isBest && prevBest ? t('NEW BEST!') + ' ' : isBest ? t('First time on the board!') + ' ' : '')
+      + (isBest ? '' : ms === best ? t('Ties your best.') + ' ' : f('+{0} vs your best.', fmtSec(ms - best)) + ' ')
+      + f('Lights out after {0}.', fmtHold(hold));
+    if (ms < 300) ach('rx_300');
+    if (ms < 200) ach('rx_200');
     againEl.textContent = 'PRESS SPACE OR TAP TO GO AGAIN';
     lockUntil = performance.now() + 400;
     render(true);
@@ -423,7 +431,7 @@
       falseStart('You moved before the lights went out.');
     } else if (state === 'go') {
       const ms = Math.round(ts - goTime);
-      if (ms < JUMP_BELOW) falseStart('Under ' + fmtSec(JUMP_BELOW) + ' is faster than a human can react, so it counts as a jump start.');
+      if (ms < JUMP_BELOW) falseStart(f('Under {0} is faster than a human can react, so it counts as a jump start.', fmtSec(JUMP_BELOW)));
       else recordResult(ms);
     }
   }

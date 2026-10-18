@@ -179,6 +179,7 @@
   }
   .back:hover { color: var(--accent); border-color: var(--accent); }
 </style>
+<script src="shared.js"></script>
 </head>
 <body>
 <a class="back" href="./">← Menu</a>
@@ -220,6 +221,10 @@
   'use strict';
   const N = 4, SLIDE_MS = 115;
   const $ = id => document.getElementById(id);
+  const t = window.I18N ? I18N.t : s => s;
+  const f = window.I18N ? I18N.f : (k, ...a) => a.reduce((s, v, i) => s.split('{' + i + '}').join(v), k);
+  const ach = id => { if (window.ACH) ACH.unlock(id); };
+  if (window.ACH) ACH.played('2048');
   const tilesEl = $('tiles'), overlay = $('overlay');
 
   // ---------- storage ----------
@@ -431,6 +436,9 @@
         if (s.v === 2048 && !won) won = true, s.winner = true;
       });
       score += gained;
+      if (top >= 512) ach('g_512');
+      if (top >= 1024) ach('g_1024');
+      if (top >= 2048) ach('g_2048');
       if (top) beep(300 + 60 * Math.log2(top), 0.12, 0.06);
       else beep(220, 0.04, 0.025);
       spawn();

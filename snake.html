@@ -238,6 +238,7 @@
   }
   .back:hover { color: var(--accent); border-color: var(--accent); }
 </style>
+<script src="shared.js"></script>
 </head>
 <body>
 <a class="back" href="./">← Menu</a>
@@ -291,6 +292,11 @@
 
 <script>
 (() => {
+  const t = window.I18N ? I18N.t : s => s;
+  const f = window.I18N ? I18N.f : (k, ...a) => a.reduce((s, v, i) => s.split('{' + i + '}').join(v), k);
+  const ach = id => { if (window.ACH) ACH.unlock(id); };
+  if (window.ACH) ACH.played('snake');
+
   // ---------- Setup ----------
   const COLS = 20, ROWS = 20, CELL = 24;
   const W = COLS * CELL, H = ROWS * CELL;
@@ -396,7 +402,7 @@
     overlay.classList.add('hide');
     lastTick = performance.now();
     beep(520, .12, 'triangle', .07, 780);
-    showToast('GO!');
+    showToast(t('GO!'));
   }
 
   function pauseGame() {
@@ -435,10 +441,12 @@
       const oldLevel = level();
       burst((food.x + .5) * CELL, (food.y + .5) * CELL, ['#ff5d7a', '#ffd0d8', '#46f0b4'], 16);
       score++;
+      if (score >= 10) ach('snk_10');
+      if (score >= 30) ach('snk_30');
       beep(660, .12, 'triangle', .09, 990);
       if (level() > oldLevel) {
         applySpeed();
-        showToast('Level ' + level());
+        showToast(t('Level ' + level()));
         setTimeout(() => beep(880, .18, 'sine', .08, 1320), 90);
       }
       updateStats(true);

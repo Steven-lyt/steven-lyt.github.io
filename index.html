@@ -97,17 +97,42 @@
   .best b { color: var(--text); }
   .go { font-weight: 700; color: var(--edge); }
   .soon {
+    grid-column: 1 / -1;
     display: flex; align-items: center; justify-content: center;
-    min-height: 190px;
+    text-align: center;
+    min-height: 72px;
     border-radius: 20px;
     border: 1px dashed var(--border);
     color: var(--muted);
     font-size: .9rem;
     letter-spacing: .12em;
   }
+  .ach { margin-top: 30px; }
+  .ach h3 {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin: 0 0 12px; font-size: .9rem; letter-spacing: .14em; color: var(--muted); font-weight: 700;
+  }
+  .ach h3 b { color: #ffe45c; font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+  .achgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .badge {
+    display: flex; gap: 10px; align-items: center;
+    padding: 10px 12px; border-radius: 14px;
+    border: 1px solid var(--border); background: var(--panel);
+  }
+  .badge .ic {
+    flex: none; width: 38px; height: 38px; display: grid; place-items: center;
+    border-radius: 12px; font-size: 1.3rem; background: rgba(255, 255, 255, .07);
+  }
+  .badge b { display: block; font-size: .85rem; }
+  .badge small { display: block; color: var(--muted); font-size: .72rem; line-height: 1.45; margin-top: 2px; }
+  .badge.on { border-color: rgba(255, 228, 92, .45); background: rgba(255, 228, 92, .07); }
+  .badge.on .ic { background: rgba(255, 228, 92, .18); }
+  .badge.off .ic { filter: grayscale(1); opacity: .45; }
+  .badge.off b { color: var(--muted); }
   footer { margin-top: 28px; text-align: center; color: var(--muted); font-size: .78rem; line-height: 1.8; }
   footer a { color: var(--muted); }
 </style>
+<script src="shared.js"></script>
 </head>
 <body>
 <main>
@@ -180,6 +205,11 @@
     <div class="soon">MORE GAMES COMING SOON</div>
   </div>
 
+  <section class="ach" id="ach" hidden>
+    <h3><span>Achievements</span><b id="achCount">0 / 0</b></h3>
+    <div class="achgrid" id="achGrid"></div>
+  </section>
+
   <footer>
     Play with a keyboard on desktop or touch on mobile<br>
     Best scores are saved in this browser
@@ -204,6 +234,25 @@
   show('bestRunner', 'run.best');
   show('best2048', 'g2048.best');
   show('bestVolt', 'vd.best');
+  (function () {
+    if (!window.ACH) return;
+    const t = window.I18N ? I18N.t : s => s;
+    const grid = document.getElementById('achGrid');
+    ACH.list().forEach(a => {
+      const d = document.createElement('div');
+      d.className = 'badge ' + (a.unlocked ? 'on' : 'off');
+      d.title = a.unlocked ? '' : t('Locked');
+      const ic = document.createElement('div'); ic.className = 'ic'; ic.textContent = a.unlocked ? a.icon : '🔒';
+      const box = document.createElement('div');
+      const nm = document.createElement('b'); nm.textContent = t(a.name);
+      const ds = document.createElement('small'); ds.textContent = t(a.desc);
+      box.appendChild(nm); box.appendChild(ds);
+      d.appendChild(ic); d.appendChild(box);
+      grid.appendChild(d);
+    });
+    document.getElementById('achCount').textContent = ACH.count() + ' / ' + ACH.total();
+    document.getElementById('ach').hidden = false;
+  })();
   (function () {
     try {
       const n = Number(JSON.parse(localStorage.getItem('rx.best') || '0'));

@@ -1,2 +1,86 @@
-# steven-lyt.github.io
-Vibecoding Workshop 2026 10/15
+# Steven's Arcade 🎮
+
+A small browser arcade: six games in plain HTML, CSS and JavaScript. No frameworks, no build step.
+
+**Play it here → https://steven-lyt.github.io/**
+
+[English](#english) · [繁體中文](#繁體中文)
+
+![Menu](screenshots/menu.jpg)
+
+---
+
+## English
+
+### Games
+
+| | Game | What it is |
+|---|---|---|
+| ![Snake](screenshots/snake.jpg) | **Snake** | Eat food, grow longer, avoid the walls and yourself. Three difficulty levels and a wrap-around mode. |
+| ![Tetris](screenshots/tetris.jpg) | **Tetris** | Hold, ghost piece, 7-bag randomizer, wall kicks, combos, and a start-level option. |
+| ![Neon Runner](screenshots/runner.jpg) | **Neon Runner** | An endless runner. Jump over crystals, duck under drones, and keep up as the speed climbs. |
+| ![F1 Reaction](screenshots/reaction.jpg) | **F1 Reaction** | Five red lights, then lights out. The wait is random every time. Jump starts are caught. |
+| ![2048](screenshots/2048.jpg) | **2048** | Slide and merge tiles. Smooth animations, undo, and your board is saved if you refresh. |
+| ![Volt Dash](screenshots/volt.jpg) | **Volt Dash** | A side-scrolling platformer with an original hero. Stomp bugs, bump blocks, dodge spikes, reach the gate. 3 levels with checkpoints. |
+
+### Features
+
+- **Works on desktop and mobile.** Keyboard on a computer, on-screen buttons or swipes on a phone.
+- **English / 中文 switch** (top right of every page). The choice is saved.
+- **16 achievements** that unlock as you play. They show on the menu page.
+- **Best scores and progress are saved in your browser** (`localStorage`). Nothing is sent anywhere.
+- **Every game is one self-contained file.** Shared code (language and achievements) lives in `shared.js`.
+
+### Project structure
+
+```
+index.html      menu, best scores, achievements
+shared.js       language switch + achievements
+snake.html  tetris.html  runner.html  reaction.html  2048.html  volt.html
+screenshots/    images used in this README
+```
+
+### Run it on your computer
+
+```bash
+git clone https://github.com/Steven-lyt/steven-lyt.github.io
+cd steven-lyt.github.io
+python3 -m http.server 8000      # then open http://localhost:8000
+```
+
+You can also just open `index.html` in a browser.
+
+### Notes
+
+- Made at the Vibecoding Workshop (2026/10/15), with Claude as a coding partner.
+- The hero of Volt Dash is an original character. The game is a platformer in the classic style, not a copy of any existing game.
+
+---
+
+## 繁體中文
+
+這是一個放在瀏覽器裡的小型遊戲廳，共 6 個遊戲，只用 HTML、CSS 和 JavaScript 寫成，不需要任何框架或建置步驟。
+
+**線上遊玩 → https://steven-lyt.github.io/**
+
+### 遊戲
+
+| 遊戲 | 簡介 |
+|---|---|
+| **貪吃蛇** | 吃食物變長，避開牆壁和自己。三種難度，另有穿牆模式。 |
+| **俄羅斯方塊** | 有保留、幽靈方塊、7 包隨機、踢牆旋轉、連擊，可選起始等級。 |
+| **霓虹跑酷** | 無盡跑酷。跳過水晶、蹲過無人機，速度會越來越快。 |
+| **F1 起跑反應** | 五盞紅燈後熄滅，等待時間每次隨機，會判定偷跑。 |
+| **2048** | 滑動並合併方塊。有動畫、可復原，重新整理後盤面不會消失。 |
+| **Volt 衝刺** | 橫向捲軸跳台遊戲，主角是原創角色。踩扁蟲子、頂方塊、閃開尖刺，抵達大門。共 3 關，有檢查點。 |
+
+### 特色
+
+- 電腦用鍵盤，手機用螢幕按鈕或滑動。
+- 每個頁面右上角可以切換 **English / 中文**，選擇會被記住。
+- **16 個成就**，在選單頁顯示。
+- 最高分和進度都存在你的瀏覽器（`localStorage`），不會傳送到任何地方。
+
+### 製作
+
+在 Vibecoding Workshop（2026/10/15）製作，Claude 作為寫程式的夥伴。

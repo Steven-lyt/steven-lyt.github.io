@@ -248,6 +248,7 @@
   }
   .back:hover { color: var(--accent); border-color: var(--accent); }
 </style>
+<script src="shared.js"></script>
 </head>
 <body>
 <a class="back" href="./">← Menu</a>
@@ -318,6 +319,11 @@
 
 <script>
 (() => {
+  const t = window.I18N ? I18N.t : s => s;
+  const f = window.I18N ? I18N.f : (k, ...a) => a.reduce((s, v, i) => s.split('{' + i + '}').join(v), k);
+  const ach = id => { if (window.ACH) ACH.unlock(id); };
+  if (window.ACH) ACH.played('tetris');
+
   // ---------- Setup ----------
   const COLS = 10, ROWS = 20, CELL = 30;
   const W = COLS * CELL, H = ROWS * CELL;
@@ -571,7 +577,8 @@
         burst((x + .5) * CELL, (y + .5) * CELL, [COLORS[board[y][x]], '#ffffff'], 2);
     let label = n === 4 ? 'TETRIS!' : ['', 'Single', 'Double', 'Triple'][n];
     if (combo > 0) label += ' ' + (combo + 1) + 'x combo';
-    showToast(label);
+    showToast(t(label));
+    if (n === 4) ach('tet_four');
     if (n === 4) { shakeUntil = performance.now() + 300; shakeAmp = 6; }
     [523, 659, 784, 1047].slice(0, n).forEach((f, i) =>
       setTimeout(() => beep(f, .14, 'triangle', .07), i * 70));
@@ -583,10 +590,11 @@
     for (const y of rows) { board.splice(y, 1); board.unshift(Array(COLS).fill(null)); }
     const old = level;
     lines += rows.length;
+    if (lines >= 40) ach('tet_40');
     level = startLevel + Math.floor(lines / 10);
     clearing = null;
     if (level > old) {
-      showToast('Level ' + level);
+      showToast(t('Level ' + level));
       setTimeout(() => beep(880, .2, 'sine', .07, 1320), 120);
     }
     updateStats();
@@ -625,7 +633,7 @@
     state = 'playing';
     overlay.classList.add('hide');
     spawnNext();
-    showToast('GO!');
+    showToast(t('GO!'));
     beep(520, .12, 'triangle', .07, 780);
   }
 
