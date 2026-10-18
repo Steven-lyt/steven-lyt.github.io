@@ -109,7 +109,7 @@
     'Stage 1': '第 1 關', 'Stage 2': '第 2 關', 'Stage 3': '第 3 關',
 
     // achievements
-    'Arcade Regular': '街機常客', 'Play all seven games.': '每個遊戲都玩過一次。',
+    'Arcade Regular': '街機常客', 'Play all eight games.': '每個遊戲都玩過一次。',
     'Hungry Snake': '飢餓小蛇', 'Score 10 in Snake.': '在貪吃蛇得到 10 分。',
     'Long Boy': '長長一條', 'Score 30 in Snake.': '在貪吃蛇得到 30 分。',
     'Four at Once': '一次四排', 'Clear 4 lines with one piece in Tetris.': '在俄羅斯方塊用一個方塊消除 4 行。',
@@ -128,6 +128,27 @@
     'Wall Breaker': '破牆者', 'Clear level 1 in Breakout.': '在打磚塊通過第 1 關。',
     'Demolition Crew': '拆除小隊', 'Reach level 3 in Breakout.': '在打磚塊到達第 3 關。',
     'Chain Reaction': '連鎖反應', 'Break 10 bricks without touching the paddle.': '不碰擋板連續打破 10 塊磚。',
+    'Holding the Line': '堅守陣線', 'Reach wave 10 in Tower Defense.': '在塔防到達第 10 波。',
+    'Fortress': '堅不可摧', 'Survive all 20 waves in Tower Defense.': '在塔防撐過全部 20 波。',
+    'Fully Upgraded': '滿級防禦', 'Upgrade a tower to level 3.': '把一座塔升到 3 級。',
+    'Boss Slayer': '首領終結者', 'Defeat a boss in Tower Defense.': '在塔防擊敗一隻首領。',
+
+    // tower defense
+    'Tower Defense': '塔防', 'NEON DEFENSE': '霓虹塔防',
+    'Build and upgrade towers to stop waves of enemies. 4 tower types, 3 maps and boss waves.': '建造並升級防禦塔，擋下一波又一波敵人。4 種塔、3 張地圖，還有首領關。',
+    'GOLD': '金幣', 'WAVE': '波數',
+    'Survive all 20 waves. Build towers, upgrade them, and keep your core alive.': '撐過全部 20 波。建造並升級防禦塔，保護你的核心。',
+    'Zigzag': '蛇行', 'Spiral': '螺旋', 'Gauntlet': '長廊',
+    'Pulse': '脈衝塔', 'Frost': '冰霜塔', 'Cannon': '加農砲', 'Rail': '電磁砲',
+    'Fast, cheap all-rounder.': '射速快、便宜的全能塔。', 'Slows enemies down.': '讓敵人減速。',
+    'Splash damage, slow reload.': '範圍傷害，裝填較慢。', 'Long range, huge damage. Level 3 pierces.': '射程遠、傷害高。3 級可貫穿。',
+    'Pick a tower, then tap a free tile to build it. Tap a tower to upgrade it.': '先選一種塔，再點空地建造。點擊已建的塔可以升級。',
+    'Level': '等級', 'Damage': '傷害', 'Rate': '射速', 'Range': '射程', 'Slow': '減速', 'Splash': '範圍', 'Pierce': '貫穿',
+    'Upgrade': '升級', 'Max level': '已滿級', 'Sell': '出售', 'Target': '目標',
+    'First': '最前', 'Strongest': '最強', 'Closest': '最近',
+    'Start wave {0}': '開始第 {0} 波', 'Send wave {0}': '提前派出第 {0} 波', 'Start wave 1': '開始第 1 波', 'Final wave': '最後一波', 'Speed': '速度',
+    'build': '建造', 'next wave': '下一波', 'upgrade': '升級', 'speed': '速度',
+    'Wave {0}': '第 {0} 波', 'BOSS INCOMING': '首領來襲！', 'Not enough gold': '金幣不足',
 
     // breakout
     'Breakout': '打磚塊', 'NEON BREAKOUT': '霓虹打磚塊',
@@ -148,6 +169,7 @@
     [/^Best (\d+)$/, m => '最高分 ' + m[1]],
     [/^· Best (\d+)$/, m => '· 最高分 ' + m[1]],
     [/^Level (\d+) · Best (\d+)$/, m => '等級 ' + m[1] + ' · 最高分 ' + m[2]],
+    [/^Reached wave (\d+)$/, m => '到達第 ' + m[1] + ' 波'],
     [/^Level (\d+)$/, m => '等級 ' + m[1]],
     [/^Lines (\d+) · Level (\d+)$/, m => '行數 ' + m[1] + ' · 等級 ' + m[2]],
     [/^(.+?) (\d+)x combo$/, m => tr(m[1]) + ' ' + m[2] + 'x 連擊'],
@@ -262,7 +284,7 @@
 
   // ---------------------------------------------------------------- achievements
   const ACH_LIST = [
-    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all seven games.' },
+    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all eight games.' },
     { id: 'snk_10',     icon: '🐍', name: 'Hungry Snake',       desc: 'Score 10 in Snake.' },
     { id: 'snk_30',     icon: '🐍', name: 'Long Boy',           desc: 'Score 30 in Snake.' },
     { id: 'tet_four',   icon: '🧱', name: 'Four at Once',       desc: 'Clear 4 lines with one piece in Tetris.' },
@@ -280,9 +302,13 @@
     { id: 'vd_battery', icon: '⚡', name: 'Fully Charged',      desc: 'Grab a battery in Volt Dash.' },
     { id: 'bo_l1',      icon: '🏓', name: 'Wall Breaker',       desc: 'Clear level 1 in Breakout.' },
     { id: 'bo_l3',      icon: '🏓', name: 'Demolition Crew',    desc: 'Reach level 3 in Breakout.' },
-    { id: 'bo_chain',   icon: '🏓', name: 'Chain Reaction',     desc: 'Break 10 bricks without touching the paddle.' }
+    { id: 'bo_chain',   icon: '🏓', name: 'Chain Reaction',     desc: 'Break 10 bricks without touching the paddle.' },
+    { id: 'td_w10',     icon: '🏰', name: 'Holding the Line',   desc: 'Reach wave 10 in Tower Defense.' },
+    { id: 'td_win',     icon: '🏰', name: 'Fortress',           desc: 'Survive all 20 waves in Tower Defense.' },
+    { id: 'td_max',     icon: '🏰', name: 'Fully Upgraded',     desc: 'Upgrade a tower to level 3.' },
+    { id: 'td_boss',    icon: '🏰', name: 'Boss Slayer',        desc: 'Defeat a boss in Tower Defense.' }
   ];
-  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt', 'breakout'];
+  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt', 'breakout', 'td'];
 
   function readJSON(k, d) { try { const v = JSON.parse(lsGet(k)); return v && typeof v === 'object' ? v : d; } catch (e) { return d; } }
   let got = readJSON('arcade.ach', {});
