@@ -15,8 +15,6 @@
   const ZH = {
     // site / menu
     '← Menu': '← 選單',
-    'VIBECODING WORKSHOP · 2026/10/15': 'VIBECODING 工作坊 · 2026/10/15',
-    "STEVEN'S ARCADE": '史蒂文的遊戲廳',
     'Snake': '貪吃蛇', 'Tetris': '俄羅斯方塊', 'Neon Runner': '霓虹跑酷', 'F1 Reaction': 'F1 起跑反應', 'Volt Dash': 'Volt 衝刺',
     'Eat the food to grow longer and avoid the walls and yourself. Three difficulty levels plus a wrap-around mode.': '吃食物讓身體變長，避開牆壁和自己。三種難度，另有穿牆模式。',
     'Stack the blocks and clear full rows. Includes hold, ghost piece, and combo scoring.': '堆疊方塊並消除整列。有保留、幽靈方塊和連擊計分。',
@@ -111,7 +109,7 @@
     'Stage 1': '第 1 關', 'Stage 2': '第 2 關', 'Stage 3': '第 3 關',
 
     // achievements
-    'Arcade Regular': '街機常客', 'Play all six games.': '每個遊戲都玩過一次。',
+    'Arcade Regular': '街機常客', 'Play all seven games.': '每個遊戲都玩過一次。',
     'Hungry Snake': '飢餓小蛇', 'Score 10 in Snake.': '在貪吃蛇得到 10 分。',
     'Long Boy': '長長一條', 'Score 30 in Snake.': '在貪吃蛇得到 30 分。',
     'Four at Once': '一次四排', 'Clear 4 lines with one piece in Tetris.': '在俄羅斯方塊用一個方塊消除 4 行。',
@@ -126,7 +124,20 @@
     'First Gate': '第一道門', 'Clear level 1-1 in Volt Dash.': '通過 Volt 衝刺的 1-1 關。',
     'Gate Master': '大門終結者', 'Clear all three levels of Volt Dash.': '通過 Volt 衝刺的全部三關。',
     'Flawless Run': '完美通關', 'Clear a level without losing a life.': '不損失任何生命通過一關。',
-    'Fully Charged': '充滿電', 'Grab a battery in Volt Dash.': '在 Volt 衝刺拿到一顆電池。'
+    'Fully Charged': '充滿電', 'Grab a battery in Volt Dash.': '在 Volt 衝刺拿到一顆電池。',
+    'Wall Breaker': '破牆者', 'Clear level 1 in Breakout.': '在打磚塊通過第 1 關。',
+    'Demolition Crew': '拆除小隊', 'Reach level 3 in Breakout.': '在打磚塊到達第 3 關。',
+    'Chain Reaction': '連鎖反應', 'Break 10 bricks without touching the paddle.': '不碰擋板連續打破 10 塊磚。',
+
+    // breakout
+    'Breakout': '打磚塊', 'NEON BREAKOUT': '霓虹打磚塊',
+    'Bounce the ball off your paddle to smash every brick. Catch power-ups for multiball, lasers and more.': '用擋板反彈球，打碎所有磚塊。接住道具可獲得多球、雷射等效果。',
+    'LIVES': '生命',
+    'Next level': '下一關', 'Level clear!': '過關！',
+    'Break every brick. Catch power-ups.': '打碎所有磚塊，接住道具。',
+    'Tap or press Space to launch': '點擊或按空白鍵發球',
+    'WIDE': '加寬', 'MULTIBALL': '多球', 'SLOW': '減速', 'LASER': '雷射', 'EXTRA LIFE': '加一命', 'COMBO': '連擊',
+    'or move the mouse / drag': '或移動滑鼠 / 手指拖曳', 'launch': '發球'
   };
 
   // patterns for text that contains numbers (matched against the trimmed text)
@@ -136,6 +147,7 @@
     [/^(Wrap-around|Sound|Ghost): (On|Off|on|off)$/, m => OPT[m[1]] + '：' + ON_OFF[m[2].toLowerCase()]],
     [/^Best (\d+)$/, m => '最高分 ' + m[1]],
     [/^· Best (\d+)$/, m => '· 最高分 ' + m[1]],
+    [/^Level (\d+) · Best (\d+)$/, m => '等級 ' + m[1] + ' · 最高分 ' + m[2]],
     [/^Level (\d+)$/, m => '等級 ' + m[1]],
     [/^Lines (\d+) · Level (\d+)$/, m => '行數 ' + m[1] + ' · 等級 ' + m[2]],
     [/^(.+?) (\d+)x combo$/, m => tr(m[1]) + ' ' + m[2] + 'x 連擊'],
@@ -250,7 +262,7 @@
 
   // ---------------------------------------------------------------- achievements
   const ACH_LIST = [
-    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all six games.' },
+    { id: 'all_games',  icon: '🕹️', name: 'Arcade Regular',     desc: 'Play all seven games.' },
     { id: 'snk_10',     icon: '🐍', name: 'Hungry Snake',       desc: 'Score 10 in Snake.' },
     { id: 'snk_30',     icon: '🐍', name: 'Long Boy',           desc: 'Score 30 in Snake.' },
     { id: 'tet_four',   icon: '🧱', name: 'Four at Once',       desc: 'Clear 4 lines with one piece in Tetris.' },
@@ -265,9 +277,12 @@
     { id: 'vd_l1',      icon: '⚡', name: 'First Gate',         desc: 'Clear level 1-1 in Volt Dash.' },
     { id: 'vd_all',     icon: '⚡', name: 'Gate Master',        desc: 'Clear all three levels of Volt Dash.' },
     { id: 'vd_flawless', icon: '⚡', name: 'Flawless Run',      desc: 'Clear a level without losing a life.' },
-    { id: 'vd_battery', icon: '⚡', name: 'Fully Charged',      desc: 'Grab a battery in Volt Dash.' }
+    { id: 'vd_battery', icon: '⚡', name: 'Fully Charged',      desc: 'Grab a battery in Volt Dash.' },
+    { id: 'bo_l1',      icon: '🏓', name: 'Wall Breaker',       desc: 'Clear level 1 in Breakout.' },
+    { id: 'bo_l3',      icon: '🏓', name: 'Demolition Crew',    desc: 'Reach level 3 in Breakout.' },
+    { id: 'bo_chain',   icon: '🏓', name: 'Chain Reaction',     desc: 'Break 10 bricks without touching the paddle.' }
   ];
-  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt'];
+  const GAMES = ['snake', 'tetris', 'runner', 'reaction', '2048', 'volt', 'breakout'];
 
   function readJSON(k, d) { try { const v = JSON.parse(lsGet(k)); return v && typeof v === 'object' ? v : d; } catch (e) { return d; } }
   let got = readJSON('arcade.ach', {});

@@ -82,6 +82,7 @@
   .card.f1 { --glow: rgba(255, 42, 61, .32); --edge: #ff3b4e; }
   .card.n2048 { --glow: rgba(255, 210, 63, .28); --edge: #ffd23f; }
   .card.volt { --glow: rgba(91, 140, 255, .32); --edge: #5b8cff; }
+  .card.breakout { --glow: rgba(255, 77, 157, .3); --edge: #ff4d9d; }
   .icon {
     width: 64px; height: 64px;
     display: grid; place-items: center;
@@ -138,7 +139,6 @@
 <main>
   <header>
     <h1>STEVEN'S ARCADE</h1>
-    <p>VIBECODING WORKSHOP · 2026/10/15</p>
   </header>
 
   <div class="grid">
@@ -202,6 +202,16 @@
       </div>
     </a>
 
+    <a class="card breakout" href="breakout.html">
+      <div class="icon">🏓</div>
+      <h2>Breakout</h2>
+      <p>Bounce the ball off your paddle to smash every brick. Catch power-ups for multiball, lasers and more.</p>
+      <div class="meta">
+        <span class="best" id="bestBreakout">Not played yet</span>
+        <span class="go">Play →</span>
+      </div>
+    </a>
+
     <div class="soon">MORE GAMES COMING SOON</div>
   </div>
 
@@ -234,6 +244,7 @@
   show('bestRunner', 'run.best');
   show('best2048', 'g2048.best');
   show('bestVolt', 'vd.best');
+  show('bestBreakout', 'bo.best');
   (function () {
     if (!window.ACH) return;
     const t = window.I18N ? I18N.t : s => s;

@@ -1,6 +1,6 @@
 # Steven's Arcade 🎮
 
-A small browser arcade: six games in plain HTML, CSS and JavaScript. No frameworks, no build step.
+A small browser arcade: seven games in plain HTML, CSS and JavaScript. No frameworks, no build step.
 
 **Play it here → https://steven-lyt.github.io/**
 
@@ -22,12 +22,13 @@ A small browser arcade: six games in plain HTML, CSS and JavaScript. No framewor
 | ![F1 Reaction](screenshots/reaction.jpg) | **F1 Reaction** | Five red lights, then lights out. The wait is random every time. Jump starts are caught. |
 | ![2048](screenshots/2048.jpg) | **2048** | Slide and merge tiles. Smooth animations, undo, and your board is saved if you refresh. |
 | ![Volt Dash](screenshots/volt.jpg) | **Volt Dash** | A side-scrolling platformer with an original hero. Stomp bugs, bump blocks, dodge spikes, reach the gate. 3 levels with checkpoints. |
+| ![Breakout](screenshots/breakout.jpg) | **Breakout** | Classic brick breaker. 5 levels, tough and steel bricks, and power-ups: wide paddle, multiball, slow, laser and extra life. |
 
 ### Features
 
 - **Works on desktop and mobile.** Keyboard on a computer, on-screen buttons or swipes on a phone.
 - **English / 中文 switch** (top right of every page). The choice is saved.
-- **16 achievements** that unlock as you play. They show on the menu page.
+- **19 achievements** that unlock as you play. They show on the menu page.
 - **Best scores and progress are saved in your browser** (`localStorage`). Nothing is sent anywhere.
 - **Every game is one self-contained file.** Shared code (language and achievements) lives in `shared.js`.
 
@@ -36,7 +37,7 @@ A small browser arcade: six games in plain HTML, CSS and JavaScript. No framewor
 ```
 index.html      menu, best scores, achievements
 shared.js       language switch + achievements
-snake.html  tetris.html  runner.html  reaction.html  2048.html  volt.html
+snake.html  tetris.html  runner.html  reaction.html  2048.html  volt.html  breakout.html
 screenshots/    images used in this README
 ```
 
@@ -73,12 +74,13 @@ You can also just open `index.html` in a browser.
 | **F1 起跑反應** | 五盞紅燈後熄滅，等待時間每次隨機，會判定偷跑。 |
 | **2048** | 滑動並合併方塊。有動畫、可復原，重新整理後盤面不會消失。 |
 | **Volt 衝刺** | 橫向捲軸跳台遊戲，主角是原創角色。踩扁蟲子、頂方塊、閃開尖刺，抵達大門。共 3 關，有檢查點。 |
+| **打磚塊** | 經典打磚塊。5 個關卡，有硬磚和鋼磚，道具包括加寬、多球、減速、雷射和加一命。 |
 
 ### 特色
 
 - 電腦用鍵盤，手機用螢幕按鈕或滑動。
 - 每個頁面右上角可以切換 **English / 中文**，選擇會被記住。
-- **16 個成就**，在選單頁顯示。
+- **19 個成就**，在選單頁顯示。
 - 最高分和進度都存在你的瀏覽器（`localStorage`），不會傳送到任何地方。
 
 ### 製作
